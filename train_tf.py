@@ -1,10 +1,14 @@
 import json
+import os
 import tensorflow as tf
 from tensorflow import keras
 
+# Ensure output directory exists for model artifacts
+os.makedirs("models", exist_ok=True)
+
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 32
-BASE_LR = 1e-3
+BASE_LR = 1e-3 
 EPOCHS_FROZEN = 5
 EPOCHS_FT = 10
 
@@ -18,7 +22,12 @@ val_ds = keras.utils.image_dataset_from_directory(
     val_dir, image_size=IMG_SIZE, batch_size=BATCH_SIZE, shuffle=False
 )
 
+# Capture class names BEFORE applying ignore_errors(), as the wrapper drops attributes
 class_names = train_ds.class_names
+
+# Skip unreadable/unsupported images (e.g., WEBP, corrupted files)
+train_ds = train_ds.ignore_errors()
+val_ds = val_ds.ignore_errors()
 
 AUTOTUNE = tf.data.AUTOTUNE
 train_ds = train_ds.cache().prefetch(AUTOTUNE)
