@@ -1,0 +1,22 @@
+flask==3.0.0
+flask-cors==4.0.0
+pandas==2.1.4
+scikit-learn==1.3.2
+numpy==1.24.3
+nltk==3.8.1
+transformers==4.35.0
+torch==2.1.0
+sentencepiece==0.1.99
+
+# Translation support
+googletrans==4.0.0rc1
+langdetect==1.0.9
+
+# Voice features
+SpeechRecognition==3.10.0
+pyttsx3==2.90
+gTTS==2.5.1
+
+# Optional: for loading environment variables
+python-dotenv==1.0.0
+
