@@ -1,455 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌾 Crop Chatbot for Farmers</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CropAdvisor - Advise for Crop Cultivation</title>
+  <style>
+    /* Reset & base */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+    body, html {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100%;
+      background: #fff;
+      color: #2f4f1f;
+    }
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            width: 100%;
-            max-width: 900px;
-            height: 90vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
 
-        .header {
-            background: linear-gradient(135deg, #2E7D32 0%, #558B2F 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
+    /* Navigation Bar */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 3rem;
+      background: white;
+      box-shadow: 0 2px 5px rgb(0 0 0 / 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
 
-        .header h1 {
-            font-size: 2rem;
-            margin-bottom: 5px;
-        }
+    nav .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: #4a7c0c;
+    }
 
-        .header p {
-            opacity: 0.9;
-            font-size: 0.9rem;
-        }
+    nav .logo svg {
+      height: 32px;
+      width: 32px;
+      fill: #4a7c0c;
+    }
 
-        .controls {
-            padding: 15px;
-            background: #f5f5f5;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 2rem;
+      font-weight: 600;
+      font-size: 1rem;
+    }
 
-        .controls select, .controls button {
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            cursor: pointer;
-        }
+    nav ul li a:hover {
+      color: #7fb800;
+    }
 
-        .controls button {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            transition: background 0.3s;
-        }
+    /* Hero Section */
+    .hero {
+      position: relative;
+      height: 70vh;
+      background:
+        linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,0.6)),
+        url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80');
+      background-size: cover;
+      background-position: center center;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-left: 5%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-        .controls button:hover {
-            background: #45a049;
-        }
+    .hero h1 {
+      font-size: clamp(2rem,4vw,3rem);
+      font-weight: 900;
+      max-width: 700px;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+      text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
+    }
 
-        .chat-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
+    .hero .buttons {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1rem;
+    }
 
-        .message {
-            max-width: 70%;
-            padding: 12px 18px;
-            border-radius: 18px;
-            word-wrap: break-word;
-            animation: slideIn 0.3s ease-out;
-        }
+    .hero button {
+      background-color: #7fb800;
+      border: none;
+      color: white;
+      font-weight: 700;
+      padding: 1rem 2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      box-shadow: 0 6px 10px rgba(127,184,0,0.6);
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .hero button i {
+      margin-right: 8px;
+      font-size: 1.3rem;
+    }
 
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    .hero button:hover {
+      background-color: #a8d300;
+      box-shadow: 0 10px 20px rgba(168,211,0,0.8);
+    }
 
-        .message.user {
-            align-self: flex-end;
-            background: #4CAF50;
-            color: white;
-            border-bottom-right-radius: 4px;
-        }
-
-        .message.bot {
-            align-self: flex-start;
-            background: #E8F5E9;
-            color: #333;
-            border-bottom-left-radius: 4px;
-        }
-
-        .input-area {
-            padding: 20px;
-            background: #f9f9f9;
-            display: flex;
-            gap: 10px;
-            border-top: 1px solid #ddd;
-        }
-
-        .input-area input {
-            flex: 1;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            font-size: 1rem;
-            outline: none;
-            color: #333;
-            background: white;
-        }
-        
-        .input-area input::placeholder {
-            color: #999;
-        }
-        
-        .controls label {
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .controls select {
-            color: #333;
-            background: white;
-        }
-
-        .input-area input:focus {
-            border-color: #4CAF50;
-        }
-
-        .input-area button {
-            padding: 12px 25px;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
-        }
-
-        .input-area button:hover {
-            background: #45a049;
-        }
-
-        .record-btn {
-            background: #f44336 !important;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #4CAF50;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-    </style>
+    /* Responsive navigation for smaller screens */
+    @media (max-width: 768px) {
+      nav {
+        padding: 0.75rem 1.5rem;
+      }
+      nav ul {
+        gap: 1rem;
+        font-size: 0.95rem;
+      }
+      .hero {
+        height: 55vh;
+        padding-left: 3%;
+      }
+      .hero h1 {
+        font-size: clamp(1.5rem, 5vw, 2.5rem);
+        max-width: 95%;
+      }
+      .hero .buttons {
+        flex-direction: column;
+        width: max-content;
+      }
+      .hero button {
+        width: 150px;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+      }
+    }
+  </style>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🌾 Crop Chatbot for Farmers</h1>
-            <p>Ask questions about crops, farming practices, diseases, fertilizers, and more!</p>
-        </div>
-
-        <div class="controls">
-            <select id="languageSelect">
-                <option value="auto">Auto Detect (ಸ್ವಯಂ ಪತ್ತೆ / स्वतः पता लगाएं)</option>
-                <option value="en">English</option>
-                <option value="hi">हिंदी (Hindi)</option>
-                <option value="kn">ಕನ್ನಡ (Kannada)</option>
-                <option value="ta">தமிழ் (Tamil)</option>
-                <option value="te">తెలుగు (Telugu)</option>
-                <option value="mr">मराठी (Marathi)</option>
-                <option value="gu">ગુજરાતી (Gujarati)</option>
-                <option value="bn">বাংলা (Bengali)</option>
-                <option value="ml">മലയാളം (Malayalam)</option>
-                <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
-                <option value="ur">اردو (Urdu)</option>
-            </select>
-            <label>
-                <input type="checkbox" id="ttsCheckbox"> Enable Text-to-Speech
-            </label>
-            <button onclick="clearChat()">🗑️ Clear Chat</button>
-        </div>
-
-        <div class="chat-container" id="chatContainer">
-            <div class="message bot">
-                👋 Welcome! I'm your crop farming assistant. Ask me anything about crops, diseases, fertilizers, or farming practices!
-            </div>
-        </div>
-
-        <div class="input-area">
-            <input 
-                type="text" 
-                id="userInput" 
-                placeholder="Type your question or click microphone to speak..."
-                onkeypress="if(event.key === 'Enter') sendMessage()"
-            />
-            <div class="voice-controls">
-                <button id="recordBtn" onclick="toggleRecording()">🎤</button>
-                <button onclick="sendMessage()" id="sendBtn">Send 📤</button>
-            </div>
-        </div>
+  <nav>
+    <div class="logo" aria-label="CropAdvisor logo">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <path d="M10 54v-28l8 4 6 22 4-34 6 16 6-16 8 4v28h-38z"/>
+      </svg>
+      CropAdvisor
     </div>
+    <ul role="menubar">
+      <li role="none"><a href="#" role="menuitem" tabindex="0">Home</a></li>
+      <li role="none"><a href="#" role="menuitem" tabindex="0">About Us</a></li>
+      <li role="none"><a href="#" role="menuitem" tabindex="0">Contact</a></li>
+      <li role="none"><a href="/login" role="menuitem" tabindex="0">Login / Signup</a></li>
+    </ul>
+  </nav>
 
-    <script>
-        let isRecording = false;
-        let recognition = null;
+  <section class="hero" role="banner" aria-label="Crop cultivation machine learning prediction">
+    <h1>Advising For Crop Cultivation Using Machine Learning</h1>
+    <div class="buttons">
+      <button type="button" aria-label="Open Chatbot" onclick="navigateToChat()">
+        <i class="fas fa-robot"></i> Chatbot
+      </button>
+    </div>
+  </section>
 
-        // Initialize Web Speech API if available
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'en-US';
-
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('userInput').value = transcript;
-                // Don't auto-send, let user review first
-                // sendMessage();
-            };
-
-            recognition.onerror = function(event) {
-                console.error('Speech recognition error:', event.error);
-                const chatContainer = document.getElementById('chatContainer');
-                const errorMsg = document.createElement('div');
-                errorMsg.className = 'message bot';
-                errorMsg.style.background = '#ffebee';
-                errorMsg.style.color = '#c62828';
-                
-                const errors = {
-                    'not-allowed': 'Microphone permission denied. Please allow microphone access in your browser settings and refresh the page.',
-                    'no-speech': 'No speech detected. Please try again.',
-                    'audio-capture': 'No microphone found. Please connect a microphone.',
-                    'network': 'Network error occurred.',
-                };
-                
-                errorMsg.textContent = '⚠️ ' + (errors[event.error] || 'Speech recognition error: ' + event.error);
-                chatContainer.appendChild(errorMsg);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-                
-                // Reset button
-                document.getElementById('recordBtn').classList.remove('record-btn');
-                document.getElementById('recordBtn').textContent = '🎤';
-                isRecording = false;
-            };
-
-            recognition.onend = function() {
-                document.getElementById('recordBtn').classList.remove('record-btn');
-                document.getElementById('recordBtn').textContent = '🎤';
-                isRecording = false;
-                // Prevent auto-restart
-                recognition.stop();
-            };
-        }
-
-        function toggleRecording() {
-            if (!recognition) {
-                alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
-                return;
-            }
-
-            if (!isRecording) {
-                try {
-                    // Prevent multiple simultaneous recordings
-                    if (recognition.state === 'running') {
-                        recognition.stop();
-                        return;
-                    }
-                    
-                    recognition.lang = document.getElementById('languageSelect').value === 'auto' ? 'en-US' : getLanguageCode(document.getElementById('languageSelect').value);
-                    recognition.start();
-                    document.getElementById('recordBtn').classList.add('record-btn');
-                    document.getElementById('recordBtn').textContent = '🛑';
-                    isRecording = true;
-                } catch (error) {
-                    console.error('Error starting speech recognition:', error);
-                    isRecording = false;
-                    document.getElementById('recordBtn').classList.remove('record-btn');
-                    document.getElementById('recordBtn').textContent = '🎤';
-                }
-            } else {
-                if (recognition.state === 'running') {
-                    recognition.stop();
-                }
-            }
-        }
-
-        function getLanguageCode(lang) {
-            const langMap = {
-                'en': 'en-US',
-                'hi': 'hi-IN',  // Hindi
-                'ta': 'ta-IN',  // Tamil
-                'te': 'te-IN',  // Telugu
-                'mr': 'mr-IN',  // Marathi
-                'gu': 'gu-IN',  // Gujarati
-                'bn': 'bn-IN',  // Bengali
-                'kn': 'kn-IN',  // Kannada
-                'ml': 'ml-IN',  // Malayalam
-                'pa': 'pa-IN',  // Punjabi
-                'ur': 'ur-IN'   // Urdu
-            };
-            return langMap[lang] || 'en-US';
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('userInput');
-            const message = input.value.trim();
-            
-            if (!message) return;
-
-            const language = document.getElementById('languageSelect').value;
-            const chatContainer = document.getElementById('chatContainer');
-            const sendBtn = document.getElementById('sendBtn');
-
-            // Add user message
-            const userMessageDiv = document.createElement('div');
-            userMessageDiv.className = 'message user';
-            userMessageDiv.textContent = message;
-            chatContainer.appendChild(userMessageDiv);
-            chatContainer.scrollTop = chatContainer.scrollHeight;
-
-            // Clear input
-            input.value = '';
-            sendBtn.disabled = true;
-            sendBtn.innerHTML = '<span class="loading"></span>';
-
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        text: message,
-                        language: language
-                    })
-                });
-
-                const data = await response.json();
-
-                // Add bot message
-                const botMessageDiv = document.createElement('div');
-                botMessageDiv.className = 'message bot';
-                botMessageDiv.textContent = data.reply || 'Sorry, I could not understand your question.';
-                chatContainer.appendChild(botMessageDiv);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-
-                // Text-to-speech if enabled
-                if (document.getElementById('ttsCheckbox').checked && data.reply) {
-                    playTTS(data.reply, language);
-                }
-
-            } catch (error) {
-                console.error('Error:', error);
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'message bot';
-                errorDiv.textContent = 'Sorry, an error occurred. Please try again.';
-                chatContainer.appendChild(errorDiv);
-            } finally {
-                sendBtn.disabled = false;
-                sendBtn.textContent = 'Send 📤';
-            }
-        }
-
-        async function playTTS(text, lang) {
-            try {
-                const response = await fetch('/api/text-to-speech', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        text: text,
-                        language: lang === 'auto' ? 'en' : lang
-                    })
-                });
-
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const audioUrl = URL.createObjectURL(blob);
-                    const audio = new Audio(audioUrl);
-                    audio.play();
-                }
-            } catch (error) {
-                console.error('TTS error:', error);
-            }
-        }
-
-        function clearChat() {
-            const chatContainer = document.getElementById('chatContainer');
-            chatContainer.innerHTML = `
-                <div class="message bot">
-                    👋 Welcome! I'm your crop farming assistant. Ask me anything about crops, diseases, fertilizers, or farming practices!
-                </div>
-            `;
-        }
-
-        // Update language selector to update recognition language
-        document.getElementById('languageSelect').addEventListener('change', function() {
-            if (recognition) {
-                recognition.lang = this.value === 'auto' ? 'en-US' : getLanguageCode(this.value);
-            }
-        });
-    </script>
+  <script>
+    function navigateToChat() {
+      window.location.href = '/chat';
+    }
+  </script>
 </body>
 </html>
 

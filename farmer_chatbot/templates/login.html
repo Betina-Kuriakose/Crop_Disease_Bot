@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CropAdvisor Login</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #7fb800, #4a7c0c);
+      color: #1b2810;
+    }
+
+    .card {
+      background: #fff;
+      width: min(420px, 92%);
+      border-radius: 18px;
+      padding: 2.5rem;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 0.75rem;
+      color: #4a7c0c;
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+      color: #4e5d42;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+      color: #2f4f1f;
+    }
+
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      margin-bottom: 1rem;
+      border-radius: 10px;
+      border: 1px solid #cddac4;
+      background: #f8fbf4;
+      font-size: 1rem;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.9rem 1rem;
+      border: none;
+      border-radius: 10px;
+      background: #7fb800;
+      color: white;
+      font-weight: 700;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.3s ease, transform 0.2s ease;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background: #a8d300;
+      transform: translateY(-1px);
+    }
+
+    .error {
+      background: #ffe1e1;
+      color: #b91c1c;
+      padding: 0.75rem 1rem;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .cta {
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+
+    .cta a {
+      color: #4a7c0c;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="card" role="form" aria-label="Login form">
+    <h1>Welcome back 👋</h1>
+    <p>Sign in to access the CropAdvisor chatbot.</p>
+
+    {% if error %}
+      <div class="error" role="alert">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('login') }}">
+      <label for="username">Username</label>
+      <input id="username" name="username" type="text" autocomplete="username" required />
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required />
+
+      <button type="submit">Login</button>
+    </form>
+
+    <div class="cta">
+      <p>Don't have an account? <a href="{{ url_for('signup') }}">Sign up here</a></p>
+      <p style="margin-top: 0.5rem;"><a href="{{ url_for('index') }}">← Back to home</a></p>
+    </div>
+  </div>
+</body>
+</html>
+

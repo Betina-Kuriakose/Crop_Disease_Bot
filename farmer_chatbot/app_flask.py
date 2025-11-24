@@ -1,7 +1,22 @@
 import os
 import json
-from flask import Flask, render_template, request, jsonify, send_file
+from functools import wraps
+
+from flask import (
+    Flask,
+    render_template,
+    request,
+    jsonify,
+    send_file,
+    redirect,
+    url_for,
+    session,
+)
 from flask_cors import CORS
+from pymongo import MongoClient
+from pymongo.errors import PyMongoError
+from werkzeug.security import generate_password_hash, check_password_hash
+from dotenv import load_dotenv
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -26,14 +41,17 @@ except Exception:
     detect = None
     DETECT_AVAILABLE = False
 
-# Voice support
+# Voice support (optional - PyAudio can be tricky on Windows)
 try:
     import speech_recognition as sr
     from voice_utils import VoiceAssistant
     VOICE_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     VOICE_AVAILABLE = False
-    print("Voice features not available")
+    print(f"Voice features not available: {e}")
+except Exception as e:
+    VOICE_AVAILABLE = False
+    print(f"Voice features initialization failed: {e}")
 
 USE_NLP_PIPELINE = os.getenv("FARM_BOT_DISABLE_NLP", "").lower() not in {"1", "true", "yes"}
 
@@ -121,11 +139,117 @@ MEDICATION_TERMS = {
     "drug",
 }
 
+BASE_DIR = os.path.dirname(__file__)
+
+# Load environment variables from .env file
+load_dotenv(os.path.join(BASE_DIR, ".env"))
+
+# Also try to read from .evn file (if it exists)
+EVN_FILE = os.path.join(BASE_DIR, ".evn")
+if os.path.exists(EVN_FILE):
+    with open(EVN_FILE, "r") as f:
+        evn_content = f.read().strip()
+        if evn_content:
+            # If the file contains just the URI, use it directly
+            if evn_content.startswith("mongodb"):
+                os.environ["MONGO_URI"] = evn_content
+                print(f"[Config] Loaded MONGO_URI from .evn file")
+            # If it's in KEY=VALUE format, parse it
+            elif "=" in evn_content:
+                for line in evn_content.split("\n"):
+                    if "=" in line:
+                        key, value = line.split("=", 1)
+                        os.environ[key.strip()] = value.strip()
+                print(f"[Config] Loaded environment variables from .evn file")
+
 app = Flask(__name__)
+app.config["SECRET_KEY"] = os.environ.get("FLASK_SECRET_KEY", "crop-advisor-secret")
+app.config["SESSION_COOKIE_NAME"] = os.environ.get("SESSION_COOKIE_NAME", "cropadvisor_session")
 CORS(app)  # Enable CORS for API access
 
+MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017")
+MONGO_DB_NAME = os.environ.get("MONGO_DB_NAME", "crop_advisor")
+MONGO_USER_COLLECTION = os.environ.get("MONGO_USER_COLLECTION", "users")
+
+mongo_client = None
+users_collection = None
+
+# Mask password in URI for logging
+def mask_uri(uri):
+    """Mask password in MongoDB URI for safe logging."""
+    if "@" in uri and "://" in uri:
+        parts = uri.split("://")
+        if len(parts) == 2:
+            scheme = parts[0]
+            rest = parts[1]
+            if "@" in rest:
+                user_pass, host = rest.split("@", 1)
+                if ":" in user_pass:
+                    user, _ = user_pass.split(":", 1)
+                    return f"{scheme}://{user}:***@{host}"
+    return uri
+
+# MongoDB connection (Express-style pattern)
+mongo_client = None
+db = None
+users_collection = None
+
+def initialize_mongodb():
+    """Initialize MongoDB database and collection, creating them if they don't exist."""
+    global mongo_client, db, users_collection
+    
+    try:
+        print(f"[MongoDB] Attempting connection to: {mask_uri(MONGO_URI)}")
+        mongo_client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+        # Trigger server selection to fail fast if not reachable
+        mongo_client.server_info()
+        
+        # Get database (MongoDB creates it automatically on first write)
+        db = mongo_client[MONGO_DB_NAME]
+        
+        # Get collection (MongoDB creates it automatically on first write)
+        users_collection = db[MONGO_USER_COLLECTION]
+        
+        # Explicitly create collection by inserting and deleting a dummy document if empty
+        # This ensures the collection exists even before first user signup
+        try:
+            # Try to create index - this will create the collection if it doesn't exist
+            users_collection.create_index("username", unique=True)
+            print(f"✅ Created/verified index on '{MONGO_USER_COLLECTION}.username'")
+        except Exception as idx_err:
+            print(f"⚠️  Index creation note: {idx_err}")
+        
+        # Verify collection exists by checking database
+        collection_names = db.list_collection_names()
+        if MONGO_USER_COLLECTION in collection_names:
+            print(f"✅ Collection '{MONGO_USER_COLLECTION}' exists")
+        else:
+            print(f"ℹ️  Collection '{MONGO_USER_COLLECTION}' will be created on first write")
+        
+        print(f"✅ MongoDB database connection established successfully")
+        print(f"   Database: {MONGO_DB_NAME}")
+        print(f"   Collection: {MONGO_USER_COLLECTION}")
+        print(f"   Ready to store user credentials!")
+        
+        return True
+    except PyMongoError as mongo_exc:
+        print(f"❌ [MongoDB] Connection unavailable: {mongo_exc}")
+        print(f"   URI used: {mask_uri(MONGO_URI)}")
+        mongo_client = None
+        db = None
+        users_collection = None
+        return False
+    except Exception as e:
+        print(f"❌ [MongoDB] Unexpected error: {e}")
+        mongo_client = None
+        db = None
+        users_collection = None
+        return False
+
+# Initialize MongoDB connection
+initialize_mongodb()
+
 # Load dataset (prefer pre-cleaned CSV if available)
-BASE_DIR = os.path.dirname(__file__)
 RAW_DATA_PATH = os.path.join(BASE_DIR, "archive", "questionsv4.csv")
 CLEAN_DATA_PATH = os.path.join(BASE_DIR, "archive", "questions_cleaned.csv")
 
@@ -164,6 +288,54 @@ if VOICE_AVAILABLE:
         voice_assistant = VoiceAssistant()
     except Exception as e:
         print(f"Voice assistant initialization failed: {e}")
+
+
+def ensure_default_user():
+    """Seed a default admin user only if collection is empty (fallback)."""
+    if users_collection is None:
+        return
+
+    # Only create default user if collection is completely empty
+    user_count = users_collection.count_documents({})
+    if user_count == 0:
+        default_username = os.environ.get("DEFAULT_ADMIN_USER", "farmer_admin")
+        default_password = os.environ.get("DEFAULT_ADMIN_PASS", "demo123")
+        
+        try:
+            users_collection.insert_one(
+                {
+                    "username": default_username,
+                    "password_hash": generate_password_hash(default_password),
+                    "role": "admin",
+                    "created_at": pd.Timestamp.now().isoformat()
+                }
+            )
+            print(
+                f"[MongoDB] Seeded default admin user '{default_username}' (collection was empty). "
+                "Change DEFAULT_ADMIN_PASS after first login."
+            )
+        except Exception as e:
+            print(f"[MongoDB] Could not seed default user: {e}")
+
+
+def login_required(view_func):
+    """Simple session-based access control decorator."""
+
+    @wraps(view_func)
+    def wrapped_view(*args, **kwargs):
+        if not session.get("user_id"):
+            return redirect(url_for("login"))
+        return view_func(*args, **kwargs)
+
+    return wrapped_view
+
+
+# Ensure default user exists if MongoDB is connected
+if users_collection is not None:
+    try:
+        ensure_default_user()
+    except Exception as e:
+        print(f"Warning: Could not ensure default user: {e}")
 
 def detect_language(text: str) -> str:
     """Detect the language of the input text."""
@@ -299,6 +471,95 @@ def find_best_answer(query: str, top_n=5, intent: str | None = None):
 def index():
     """Render the main chat interface."""
     return render_template("index.html")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    """Render and process the login form backed by MongoDB."""
+    error = None
+
+    if request.method == "POST":
+        username = (request.form.get("username") or "").strip()
+        password = request.form.get("password") or ""
+
+        if not username or not password:
+            error = "Username and password are required."
+        elif users_collection is None:
+            error = "Authentication service is unavailable. Please contact the administrator."
+        else:
+            user_doc = users_collection.find_one({"username": username})
+            if not user_doc:
+                # User doesn't exist, redirect to signup
+                return redirect(url_for("signup", username=username))
+            elif check_password_hash(user_doc.get("password_hash", ""), password):
+                session["user_id"] = str(user_doc["_id"])
+                session["username"] = user_doc.get("username")
+                return redirect(url_for("chat_page"))
+            else:
+                error = "Invalid password. Please try again."
+
+    return render_template("login.html", error=error)
+
+
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    """Render and process the signup form, storing credentials in MongoDB."""
+    error = None
+    username = request.args.get("username", "")
+
+    if request.method == "POST":
+        username = (request.form.get("username") or "").strip()
+        password = request.form.get("password") or ""
+        confirm_password = request.form.get("confirm_password") or ""
+
+        if not username or not password:
+            error = "Username and password are required."
+        elif password != confirm_password:
+            error = "Passwords do not match."
+        elif len(password) < 6:
+            error = "Password must be at least 6 characters long."
+        elif users_collection is None:
+            error = "Registration service is unavailable. Please contact the administrator."
+        else:
+            # Check if username already exists
+            existing_user = users_collection.find_one({"username": username})
+            if existing_user:
+                error = "Username already exists. Please choose a different username."
+            else:
+                try:
+                    # Create new user in MongoDB
+                    new_user = {
+                        "username": username,
+                        "password_hash": generate_password_hash(password),
+                        "role": "user",
+                        "created_at": pd.Timestamp.now().isoformat()
+                    }
+                    result = users_collection.insert_one(new_user)
+                    
+                    # Auto-login after signup
+                    session["user_id"] = str(result.inserted_id)
+                    session["username"] = username
+                    print(f"✅ New user registered: {username}")
+                    return redirect(url_for("chat_page"))
+                except Exception as e:
+                    error = f"Registration failed: {str(e)}"
+                    print(f"❌ Signup error: {e}")
+
+    return render_template("signup.html", error=error, username=username)
+
+
+@app.route("/logout")
+def logout():
+    """Clear the user session."""
+    session.clear()
+    return redirect(url_for("login"))
+
+
+@app.route("/chat")
+@login_required
+def chat_page():
+    """Protected chat UI."""
+    return render_template("chat.html", username=session.get("username"))
 
 @app.route("/api/chat", methods=["POST"])
 def chat():
