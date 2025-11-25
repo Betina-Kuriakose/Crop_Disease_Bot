@@ -466,11 +466,27 @@ def find_best_answer(query: str, top_n=5, intent: str | None = None):
             })
     
     return rerank_results(results, intent)
-
+'''
 @app.route("/")
 def index():
     """Render the main chat interface."""
+    return render_template("index.html")'''
+@app.route("/")
+def index():
+    """Public homepage"""
     return render_template("index.html")
+
+
+@app.route("/about")
+def about():
+    """About Us Page"""
+    return render_template("about.html")
+
+
+@app.route("/contact")
+def contact():
+    """Contact Page"""
+    return render_template("contact.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
