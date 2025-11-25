@@ -8,7 +8,7 @@
 
 When you run `python app_flask.py`, the app will:
 
-1. **Connect to MongoDB** using the URI from your `.evn` file
+1. **Connect to MongoDB** using the URI from your `.env` file
 2. **Create Database**: `crop_advisor` (or whatever you set in `MONGO_DB_NAME`)
 3. **Create Collection**: `users` (or whatever you set in `MONGO_USER_COLLECTION`)
 4. **Create Index**: Unique index on `username` field
@@ -72,7 +72,7 @@ If you want to check in MongoDB Atlas or Compass:
 - The collection will appear after the first user signs up
 
 ### Connection errors
-- Check your `.evn` file has the correct MongoDB URI
+- Check your `.env` file has the correct MongoDB URI
 - Ensure your MongoDB Atlas cluster allows connections from your IP
 - Verify your MongoDB username and password are correct
 
