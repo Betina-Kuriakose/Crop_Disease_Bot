@@ -1,209 +1,572 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>CropAdvisor - Advising For Crop Cultivation Using ML</title>
-  <style>
-    /* Reset */
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CropAdvisor - Smart Crop Advisory</title>
 
-    body, html {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      height: 100%;
-      background: #fff;
-      color: #2f4f1f;
-    }
+    <style>
+        :root {
+            --primary: #16a34a;   /* Green */
+            --primary-soft: #bbf7d0;
+            --teal: #0ea5e9;
+            --amber: #f97316;
+            --bg: #eef2ff;
+            --text-main: #0f172a;
+            --card-bg: #ffffff;
+        }
 
-    a {
-      text-decoration: none;
-      color: inherit;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Poppins", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
 
-    /* Container max width */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
+        body {
+            background:
+                radial-gradient(circle at top left, #dcfce7 0, transparent 55%),
+                radial-gradient(circle at bottom right, #fee2e2 0, transparent 55%),
+                var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
 
-    /* Navigation */
-    nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 0;
-    }
+        /* NAVBAR */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            backdrop-filter: blur(18px);
+            background: rgba(248, 250, 252, 0.9);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+        }
 
-    .logo-container {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-    }
+        .nav-inner {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-    .logo-svg {
-      width: 36px;
-      height: 36px;
-      fill: #4a7c0c;
-    }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: var(--primary);
+        }
 
-    .site-title {
-      font-weight: 700;
-      font-size: 1.6rem;
-      color: #4a7c0c;
-      user-select: none;
-    }
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background:
+                radial-gradient(circle at 20% 0, #facc15 0, transparent 40%),
+                linear-gradient(145deg, #16a34a, #15803d);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fefce8;
+            font-size: 1.4rem;
+            box-shadow: 0 10px 25px rgba(22, 163, 74, 0.35);
+        }
 
-    ul.nav-menu {
-      list-style: none;
-      display: flex;
-      gap: 2rem;
-      font-weight: 600;
-      font-size: 1rem;
-      text-transform: uppercase;
-      align-items: center;
-    }
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+            font-weight: 500;
+        }
 
-    ul.nav-menu li a:hover {
-      color: #7fb800;
-    }
+        .nav-links a {
+            text-decoration: none;
+            color: #334155;
+            font-size: 0.98rem;
+        }
 
-    /* Hero */
-    .hero {
-      position: relative;
-      height: 65vh;
-      background:
-        linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.6)),
-        url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80');
-      background-size: cover;
-      background-position: center center;
-      color: white;
-      display: flex;
-      align-items: center;
-      padding-left: 5%;
-    }
+        .nav-links a:hover {
+            color: var(--primary);
+        }
 
-    .hero-text {
-      max-width: 600px;
-    }
+        .nav-cta {
+            padding: 8px 18px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: linear-gradient(135deg, #ffffff, #e0f2fe);
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.18);
+            font-size: 0.9rem;
+        }
 
-    .hero-text h1 {
-      font-size: clamp(2rem, 4vw, 3rem);
-      font-weight: 900;
-      line-height: 1.2;
-      margin-bottom: 1.8rem;
-      text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
-      white-space: pre-line;
-    }
+        .nav-cta a {
+            text-decoration: none;
+            color: #0f172a;
+            font-weight: 600;
+        }
 
-    .btn-group {
-      display: flex;
-      gap: 1.25rem;
-    }
+        /* HERO LAYOUT */
+        .hero {
+            max-width: 1120px;
+            margin: 40px auto 24px;
+            padding: 24px;
+        }
 
-    .btn {
-      background-color: #7fb800;
-      border: none;
-      color: white;
-      font-weight: 700;
-      padding: 1rem 2rem;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: background-color 0.3s ease;
-      text-transform: uppercase;
-      box-shadow: 0 5px 15px rgba(127,184,0,0.5);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+        .hero-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+            gap: 32px;
+            align-items: center;
+        }
 
-    .btn:hover {
-      background-color: #a8d300;
-    }
+        .hero-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(22, 163, 74, 0.06);
+            border: 1px solid rgba(74, 222, 128, 0.6);
+            font-size: 0.8rem;
+            color: #166534;
+            margin-bottom: 16px;
+        }
 
-    .btn svg {
-      width: 20px;
-      height: 20px;
-      fill: white;
-    }
+        .hero-pill span.icon {
+            width: 16px;
+            height: 16px;
+            border-radius: 999px;
+            background: #22c55e;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.7rem;
+        }
 
-    /* Responsive */
-    @media (max-width: 768px) {
-      .hero {
-        height: 50vh;
-        padding-left: 3%;
-        display: flex;
-        justify-content: center;
-        text-align: center;
-      }
+        .hero h1 {
+            font-size: clamp(2.2rem, 3vw, 2.8rem);
+            line-height: 1.15;
+            margin-bottom: 12px;
+            color: #022c22;
+        }
 
-      .hero-text {
-        max-width: 100%;
-      }
+        .hero-sub {
+            font-size: 0.98rem;
+            max-width: 520px;
+            color: #4b5563;
+            margin-bottom: 20px;
+        }
 
-      .btn-group {
-        justify-content: center;
-      }
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
 
-      .btn {
-        width: 180px;
-        justify-content: center;
-      }
+        .btn-chat {
+            padding: 12px 22px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            color: white;
+            font-weight: 600;
+            font-size: 0.98rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 14px 30px rgba(21, 128, 61, 0.4);
+        }
 
-      ul.nav-menu {
-        gap: 1rem;
-        font-size: 0.9rem;
-      }
-    }
-  </style>
+        .btn-chat span.icon {
+            font-size: 1.2rem;
+        }
+
+        .btn-chat:hover {
+            filter: brightness(1.05);
+        }
+
+        .hero-link {
+            font-size: 0.9rem;
+            color: #0f172a;
+        }
+
+        .hero-link a {
+            color: var(--teal);
+            font-weight: 500;
+        }
+
+        /* CHAT PREVIEW CARD (RIGHT SIDE) */
+        .hero-card {
+            background:
+                radial-gradient(circle at top left, rgba(56, 189, 248, 0.18) 0, transparent 55%),
+                radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.22) 0, transparent 55%),
+                #f9fafb;
+            border-radius: 28px;
+            padding: 22px 22px 24px;
+            box-shadow: 0 25px 60px rgba(15, 23, 42, 0.28);
+            border: 1px solid rgba(148, 163, 184, 0.45);
+            position: relative;
+            overflow: hidden;
+            animation: floatCard 7s ease-in-out infinite;
+        }
+
+        @keyframes floatCard {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .chat-preview {
+            background: rgba(248, 250, 252, 0.9);
+            border-radius: 20px;
+            padding: 14px 14px 16px;
+            box-shadow: 0 14px 30px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .chat-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .chat-avatar {
+            width: 26px;
+            height: 26px;
+            border-radius: 999px;
+            background: linear-gradient(145deg, #16a34a, #22c55e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            color: #ecfdf3;
+            box-shadow: 0 4px 10px rgba(22, 163, 74, 0.45);
+        }
+
+        .chat-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .chat-status {
+            font-size: 0.72rem;
+            color: #16a34a;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .chat-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #22c55e;
+            box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.2);
+        }
+
+        .chat-tag {
+            font-size: 0.72rem;
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: rgba(56, 189, 248, 0.08);
+            color: #0369a1;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+        }
+
+        .chat-messages {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .chat-bubble {
+            max-width: 100%;
+            padding: 8px 10px;
+            border-radius: 14px;
+            font-size: 0.78rem;
+            line-height: 1.4;
+        }
+
+        .chat-bubble.user {
+            align-self: flex-end;
+            background: #dcfce7;
+            color: #14532d;
+            border-bottom-right-radius: 4px;
+        }
+
+        .chat-bubble.bot {
+            align-self: flex-start;
+            background: #eff6ff;
+            color: #0f172a;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-bubble strong {
+            font-weight: 600;
+        }
+
+        .chat-bubble.small {
+            font-size: 0.74rem;
+            color: #4b5563;
+        }
+
+        .typing {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: #64748b;
+            opacity: 0.3;
+            animation: bounceDot 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.15s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes bounceDot {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+            30% { transform: translateY(-3px); opacity: 0.9; }
+        }
+
+        .chat-footer-note {
+            font-size: 0.7rem;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+
+        /* WHY SECTION */
+        .section {
+            max-width: 1120px;
+            margin: 10px auto 40px;
+            padding: 0 24px 40px;
+        }
+
+        .section h2 {
+            text-align: center;
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+            color: #0f172a;
+        }
+
+        .section p {
+            text-align: center;
+            font-size: 0.95rem;
+            color: #4b5563;
+            max-width: 640px;
+            margin: 0 auto 24px;
+        }
+
+        .feature-grid {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+
+        .feature-card {
+            background: rgba(248, 250, 252, 0.9);
+            border-radius: 18px;
+            padding: 16px 18px;
+            box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+        }
+
+        .feature-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-title span.icon {
+            font-size: 1.1rem;
+        }
+
+        .feature-card p {
+            text-align: left;
+            font-size: 0.84rem;
+            color: #64748b;
+            margin: 0;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .nav-inner {
+                padding-inline: 16px;
+            }
+            .hero {
+                padding-inline: 16px;
+                margin-top: 24px;
+            }
+            .hero-grid {
+                grid-template-columns: 1fr;
+            }
+            .hero {
+                text-align: left;
+            }
+            .hero-card {
+                order: -1;
+            }
+        }
+    </style>
 </head>
+
 <body>
-  <div class="container">
+    <!-- NAVBAR -->
     <nav>
-      <div class="logo-container" aria-label="CropAdvisor logo and title" tabindex="0" onclick="window.location.href='/'">
-        <!-- Example of simple wheat logo -->
-        <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true" focusable="false" role="img">
-          <g>
-            <path d="M18 52V28l7 3 5 16 4-24 5 13 5-13 7 4v24H18z" />
-            <rect x="4" y="50" width="56" height="6" fill="#4a7c0c"/>
-          </g>
-        </svg>
-        <div class="site-title">CropAdvisor</div>
-      </div>
-      <ul class="nav-menu" role="menubar">
-        <li><a href="/" role="menuitem" tabindex="0">Home</a></li>
-        <li><a href="#" role="menuitem" tabindex="0">About Us</a></li>
-        <li><a href="#" role="menuitem" tabindex="0">Contact</a></li>
-        <li><a href="/login" role="menuitem" tabindex="0">Login / Signup</a></li>
-      </ul>
+        <div class="nav-inner">
+            <div class="brand">
+                <div class="brand-icon">🌾</div>
+                CropAdvisor
+            </div>
+            <div class="nav-links">
+                <a href="{{ url_for('index') }}">Home</a>
+                <a href="{{ url_for('about') }}">About Us</a>
+                <a href="{{ url_for('contact') }}">Contact</a>
+                <div class="nav-cta">
+                    <a href="{{ url_for('login') }}">Login / Signup</a>
+                </div>
+            </div>
+        </div>
     </nav>
-  </div>
 
-  <section class="hero" role="banner" aria-label="Advising for crop cultivation using machine learning">
-    <div class="hero-text container">
-      <h1>Advising For Crop Cultivation Using Machine Learning</h1>
-      <div class="btn-group">
-        <button type="button" class="btn" aria-label="Open Chatbot" onclick="navigateToChat()">
-          <!-- Chatbot icon SVG -->
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" role="img">
-            <path d="M12 2a7 7 0 00-7 7v1H4a1 1 0 00-1 1v5a2 2 0 002 2h2l-1 3v1h10v-1l-1-3h2a2 2 0 002-2v-5a1 1 0 00-1-1h-1V9a7 7 0 00-7-7zm-3 7a1 1 0 112 0 1 1 0 01-2 0zm6 0a1 1 0 112 0 1 1 0 01-2 0z"/>
-          </svg>
-          Chatbot
-        </button>
-      </div>
-    </div>
-  </section>
+    <!-- HERO -->
+    <main class="hero">
+        <div class="hero-grid">
+            <!-- LEFT SIDE -->
+            <div>
+                <div class="hero-pill">
+                    <span class="icon">⚡</span>
+                    AI-powered crop advisory for Indian farmers
+                </div>
 
-  <script>
-    function navigateToChat() {
-      window.location.href = '/chat';
-    }
-  </script>
+                <h1>Smart crop advisory for modern farmers.</h1>
+               
+
+                <div class="hero-actions">
+                    <button class="btn-chat" onclick="window.location.href='{{ url_for('login') }}'">
+                        <span class="icon">🤖</span>
+                        <span>Open Chatbot</span>
+                    </button>
+                   
+                </div>
+            </div>
+
+            <!-- RIGHT: CHAT PREVIEW CARD -->
+            <aside class="hero-card">
+                <div class="chat-preview">
+                    <div class="chat-header">
+                        <div class="chat-header-left">
+                            <div class="chat-avatar">🤖</div>
+                            <div>
+                                <div class="chat-title">CropAdvisor Chat</div>
+                                
+                            </div>
+                        </div>
+                        <div class="chat-tag">Farmer-friendly answers</div>
+                    </div>
+
+                    <div class="chat-messages">
+                        <!-- Farmer first -->
+                        <div class="chat-bubble user">
+                            👨‍🌾 <strong>“How much fertilizer should I use for paddy?”</strong>
+                        </div>
+
+                        <!-- Bot reply -->
+                        <div class="chat-bubble bot">
+                            <strong>CropAdvisor:</strong> Let me help with a safe fertilizer plan for paddy.
+                            I’ll consider growth stage, soil health and dose limits.
+                        </div>
+
+                        <!-- Typing bubble -->
+                        <div class="chat-bubble bot small">
+                            <span class="typing">
+                                <span class="typing-dot"></span>
+                                <span class="typing-dot"></span>
+                                <span class="typing-dot"></span>
+                            </span>
+                            &nbsp;Drafting the recommendation...
+                        </div>
+                    </div>
+
+                   
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- WHY SECTION -->
+    <section class="section">
+        <h2>Why CropAdvisor?</h2>
+        <p>
+            Reduce guesswork in farming decisions with AI-assisted guidance, while keeping the farmer
+            fully in control of the final choice.
+        </p>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-title">
+                    <span class="icon">📊</span>
+                    Data-driven suggestions
+                </div>
+                <p>
+                    Answers are based on an agricultural Q&amp;A dataset with thousands of real queries,
+                    covering crops, soil, and common farm challenges.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">
+                    <span class="icon">🌐</span>
+                    Local language support
+                </div>
+                <p>
+                    Farmers can ask questions in English or Indian languages. The system translates
+                    while keeping the meaning farmer-friendly.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">
+                    <span class="icon">🛡️</span>
+                    Safer health guidance
+                </div>
+                <p>
+                    The chatbot avoids suggesting antibiotics or drug dosages. Instead, it focuses
+                    on hygiene, prevention, and when to consult a veterinarian or expert.
+                </p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-title">
+                    <span class="icon">🚜</span>
+                    Built for small farmers
+                </div>
+                <p>
+                    Designed to run on basic devices with simple UI, making digital advisory more
+                    accessible to small and marginal Indian farmers.
+                </p>
+            </div>
+        </div>
+    </section>
 </body>
 </html>

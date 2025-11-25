@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - CropAdvisor</title>
+    <style>
+        :root {
+            --primary: #16a34a;
+            --teal: #0ea5e9;
+            --bg: #eef2ff;
+            --text-main: #0f172a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Poppins", system-ui, sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at top left, #dcfce7 0, transparent 55%),
+                        radial-gradient(circle at bottom right, #fee2e2 0, transparent 55%),
+                        var(--bg);
+            min-height: 100vh;
+            color: var(--text-main);
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            backdrop-filter: blur(16px);
+            background: rgba(248, 250, 252, 0.92);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+        }
+
+        .nav-inner {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo span {
+            font-size: 1.4rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+            font-size: 0.95rem;
+            align-items: center;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #334155;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .page {
+            max-width: 1000px;
+            margin: 40px auto 40px;
+            padding: 0 24px 40px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            font-size: 0.96rem;
+            color: #4b5563;
+            max-width: 560px;
+            margin-bottom: 24px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+            gap: 24px;
+            align-items: flex-start;
+        }
+
+        .card {
+            background: rgba(248, 250, 252, 0.95);
+            border-radius: 18px;
+            padding: 18px 20px;
+            box-shadow: 0 16px 35px rgba(15, 23, 42, 0.14);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+        }
+
+        .card p {
+            font-size: 0.9rem;
+            color: #4b5563;
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 14px 0 10px;
+        }
+
+        .pill {
+            padding: 5px 11px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            background: #e0f2fe;
+            color: #0f172a;
+        }
+
+        .pill.green {
+            background: #dcfce7;
+        }
+
+        .timeline {
+            margin-top: 20px;
+            border-left: 2px solid rgba(148, 163, 184, 0.5);
+            padding-left: 16px;
+        }
+
+        .timeline-item {
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: -20px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            background: var(--primary);
+        }
+
+        .timeline-item h3 {
+            font-size: 0.92rem;
+            margin-bottom: 3px;
+        }
+
+        .timeline-item p {
+            font-size: 0.82rem;
+            color: #6b7280;
+        }
+
+        .team-box {
+            margin-top: 16px;
+            font-size: 0.86rem;
+            color: #4b5563;
+        }
+
+        .team-box strong {
+            color: var(--primary);
+        }
+
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<nav>
+    <div class="nav-inner">
+        <div class="logo">
+            <span>🌾</span> CropAdvisor
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('about') }}" class="active">About Us</a>
+            <a href="{{ url_for('contact') }}">Contact</a>
+            <a href="{{ url_for('login') }}">Login / Signup</a>
+        </div>
+    </div>
+</nav>
+
+<main class="page">
+    <h1>About CropAdvisor</h1>
+    <span>
+    <p class="tagline">
+        CropAdvisor is a simple tool designed to give farmers fast, reliable answers about crops, soil, pests, diseases, and farming techniques — in multiple Indian languages.
+    </p>
+</span>
+
+    <div class="info-grid">
+        <section>
+            <!--
+            <div class="card">
+                <h2>What does CropAdvisor do?</h2>
+                <p>
+                    CropAdvisor is a chatbot that answers practical questions about crops,
+                    fertilizers, pests, and diseases. It uses a Q&amp;A knowledge base and
+                    an NLP pipeline to retrieve relevant answers, even when farmers ask
+                    in free-form language.
+                </p>
+
+                <div class="pill-row">
+                    <span class="pill green">🔍 Information retrieval</span>
+                    <span class="pill">🌾 Crop &amp; soil management</span>
+                    <span class="pill">🌐 Multi-language interface</span>
+                </div>
+
+                <p>
+                    Instead of directly prescribing medicines, CropAdvisor focuses on
+                    good practices: hygiene, nutrition, prevention, and when to consult
+                    an expert. This keeps the system safer and more educational.
+                </p>
+            </div>
+        -->
+             <div class="card">
+        <h2>What is CropAdvisor?</h2>
+        <p class="bullet">✔️ A chatbot for quick farming-related guidance</p>
+        <p class="bullet">✔️ Uses a curated agricultural Q&A database</p>
+        <p class="bullet">✔️ Supports translation for Indian languages</p>
+
+        <div class="pill-row">
+                    <span class="pill green">🔍 Information retrieval</span>
+                    <span class="pill">🌾 Crop &amp; soil management</span>
+                    <span class="pill">🌐 Multi-language interface</span>
+                </div>
+    </div>
+     
+        </section>
+        <aside>
+            <div class="card" style="margin-top: 16px;">
+                <h2>How the system works</h2>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <h3>1. User asks a question</h3>
+                        <p>The query can be in English or an Indian language.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h3>2. Language detection &amp; translation</h3>
+                        <p>The text is normalised and translated to English for processing.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h3>3. Similar question search</h3>
+                        <p>TF-IDF and cosine similarity find the closest matches in the Q&amp;A dataset.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <h3>4. Intent-aware answer</h3>
+                        <p>Extra checks ensure safer replies for fertilizer or disease-related questions.</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+<!--
+        <aside>
+            <div class="card">
+                <h2>Project highlights</h2>
+                <p>
+                    This project demonstrates a complete pipeline from data preprocessing
+                    and machine learning to a full-stack web application with:
+                </p>
+                <ul style="margin-top: 10px; padding-left: 18px; font-size: 0.86rem; color:#4b5563;">
+                    <li>Python &amp; Flask backend</li>
+                    <li>MongoDB-based user authentication</li>
+                    <li>TF-IDF + cosine similarity model</li>
+                    <li>Optional speech recognition &amp; text-to-speech</li>
+                </ul>
+
+                <div class="team-box">
+                    <p><strong>Team / Student:</strong> CropAdvisor mini-project</p>
+                    <p>Built as part of an academic exploration of <em>AI for agriculture</em>.</p>
+                </div>
+            </div>
+        </aside>
+    -->
+    </div>
+</main>
+</body>
+</html>

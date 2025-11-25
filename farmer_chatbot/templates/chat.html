@@ -5,15 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CropAdvisor Chat</title>
     <style>
+        :root {
+            --primary: #16a34a;
+            --teal: #0ea5e9;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Poppins', system-ui, sans-serif;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: radial-gradient(circle at top left, #22c55e 0, transparent 55%),
+                        radial-gradient(circle at bottom right, #0ea5e9 0, transparent 55%),
+                        #020617;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -22,161 +29,163 @@
         }
 
         .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            background: rgba(15, 23, 42, 0.97);
+            border-radius: 24px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7);
             width: 100%;
-            max-width: 900px;
+            max-width: 950px;
             height: 90vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            border: 1px solid rgba(148, 163, 184, 0.5);
         }
 
         .header {
-            background: linear-gradient(135deg, #2E7D32 0%, #558B2F 100%);
+            padding: 16px 22px;
+            background: radial-gradient(circle at left, rgba(34,197,94,0.4), transparent 60%),
+                        radial-gradient(circle at right, rgba(14,165,233,0.5), transparent 60%);
             color: white;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2rem;
-            margin-bottom: 5px;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 0.9rem;
-        }
-
-        .controls {
-            padding: 15px;
-            background: #f5f5f5;
             display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
         }
 
+        .header-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header h1 {
+            font-size: 1.3rem;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .header .user-meta {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .controls {
+            padding: 12px 18px;
+            background: rgba(15, 23, 42, 0.98);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+        }
+
         .controls select, .controls button {
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 0.9rem;
+            padding: 8px 12px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            background: rgba(15, 23, 42, 0.95);
+            color: #e5e7eb;
+            font-size: 0.82rem;
             cursor: pointer;
         }
 
+        .controls select {
+            min-width: 160px;
+        }
+
+        .controls label {
+            color: #9ca3af;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         .controls button {
-            background: #4CAF50;
-            color: white;
+            background: linear-gradient(135deg, #f97316, #ec4899);
             border: none;
-            transition: background 0.3s;
+            padding-inline: 14px;
         }
 
         .controls button:hover {
-            background: #45a049;
+            opacity: 0.92;
         }
 
         .chat-container {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 18px 22px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 14px;
+            background: radial-gradient(circle at top, rgba(15,118,110,0.2), transparent 55%),
+                        #020617;
         }
 
         .message {
-            max-width: 70%;
-            padding: 12px 18px;
-            border-radius: 18px;
+            max-width: 72%;
+            padding: 10px 14px;
+            border-radius: 16px;
             word-wrap: break-word;
-            animation: slideIn 0.3s ease-out;
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            font-size: 0.9rem;
         }
 
         .message.user {
             align-self: flex-end;
-            background: #4CAF50;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
             color: white;
             border-bottom-right-radius: 4px;
         }
 
         .message.bot {
             align-self: flex-start;
-            background: #E8F5E9;
-            color: #333;
+            background: rgba(15, 23, 42, 0.9);
+            color: #e5e7eb;
             border-bottom-left-radius: 4px;
+            border: 1px solid rgba(55, 65, 81, 0.9);
         }
 
         .input-area {
-            padding: 20px;
-            background: #f9f9f9;
+            padding: 14px 18px;
+            background: rgba(15, 23, 42, 0.97);
             display: flex;
             gap: 10px;
-            border-top: 1px solid #ddd;
+            border-top: 1px solid rgba(31, 41, 55, 0.9);
         }
 
         .input-area input {
             flex: 1;
-            padding: 12px 15px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            font-size: 1rem;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(75, 85, 99, 0.9);
+            background: rgba(15, 23, 42, 0.95);
+            color: #e5e7eb;
             outline: none;
-            color: #333;
-            background: white;
-        }
-        
-        .input-area input::placeholder {
-            color: #999;
-        }
-        
-        .controls label {
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .controls select {
-            color: #333;
-            background: white;
+            font-size: 0.9rem;
         }
 
-        .input-area input:focus {
-            border-color: #4CAF50;
+        .input-area input::placeholder {
+            color: #6b7280;
         }
 
         .input-area button {
-            padding: 12px 25px;
-            background: #4CAF50;
-            color: white;
+            padding: 10px 16px;
+            border-radius: 999px;
             border: none;
-            border-radius: 25px;
+            font-size: 0.88rem;
             cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
+            color: white;
+            background: linear-gradient(135deg, #0ea5e9, #6366f1);
         }
 
         .input-area button:hover {
-            background: #45a049;
+            opacity: 0.95;
         }
 
         .record-btn {
-            background: #f44336 !important;
+            background: #f97316 !important;
             animation: pulse 1.5s infinite;
         }
 
@@ -187,270 +196,228 @@
 
         .loading {
             display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #4CAF50;
-            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            border-radius: 999px;
+            border: 2px solid #f3f4f6;
+            border-top-color: #22c55e;
             animation: spin 1s linear infinite;
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .user-meta {
-            font-size: 0.85rem;
-            color: #4e5d42;
-            font-weight: 600;
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🌾 Crop Chatbot for Farmers</h1>
-            <p>Signed in as <span class="user-meta">{{ username }}</span></p>
+<div class="container">
+    <header class="header">
+        <div class="header-info">
+            <h1>CropAdvisor Chatbot</h1>
+            <p>Ask about crops, soil, fertilizers, pests, and disease prevention.</p>
         </div>
-
-        <div class="controls">
-            <div>
-                <select id="languageSelect">
-                    <option value="auto">Auto Detect</option>
-                    <option value="en">English</option>
-                    <option value="hi">हिंदी (Hindi)</option>
-                    <option value="kn">ಕನ್ನಡ (Kannada)</option>
-                    <option value="ta">தமிழ் (Tamil)</option>
-                    <option value="te">తెలుగు (Telugu)</option>
-                    <option value="mr">मराठी (Marathi)</option>
-                    <option value="gu">ગુજરાતી (Gujarati)</option>
-                    <option value="bn">বাংলা (Bengali)</option>
-                    <option value="ml">മലയാളം (Malayalam)</option>
-                    <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
-                    <option value="ur">اردو (Urdu)</option>
-                </select>
-                <label>
-                    <input type="checkbox" id="ttsCheckbox"> Enable Text-to-Speech
-                </label>
-                <button onclick="clearChat()">🗑️ Clear Chat</button>
-            </div>
-            <div>
-                <button onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
-            </div>
+        <div class="user-meta">
+            👤 Signed in as <strong>{{ username }}</strong>
         </div>
+    </header>
 
-        <div class="chat-container" id="chatContainer">
-            <div class="message bot">
-                👋 Welcome! I'm your crop farming assistant. Ask me anything about crops, diseases, fertilizers, or farming practices!
-            </div>
+    <div class="controls">
+        <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+            <select id="languageSelect">
+                <option value="auto">Auto Detect</option>
+                <option value="en">English</option>
+                <option value="hi">हिंदी (Hindi)</option>
+                <option value="kn">ಕನ್ನಡ (Kannada)</option>
+                <option value="ta">தமிழ் (Tamil)</option>
+                <option value="te">తెలుగు (Telugu)</option>
+                <option value="mr">मराठी (Marathi)</option>
+                <option value="gu">ગુજરાતી (Gujarati)</option>
+                <option value="bn">বাংলা (Bengali)</option>
+                <option value="ml">മലയാളം (Malayalam)</option>
+                <option value="pa">ਪੰਜਾਬੀ (Punjabi)</option>
+                <option value="ur">اردو (Urdu)</option>
+            </select>
+            <label>
+                <input type="checkbox" id="ttsCheckbox"> Enable Text-to-Speech
+            </label>
+            <button onclick="clearChat()">🧹 Clear Chat</button>
         </div>
+        <button onclick="window.location.href='{{ url_for('logout') }}'">Logout</button>
+    </div>
 
-        <div class="input-area">
-            <input 
-                type="text" 
-                id="userInput" 
-                placeholder="Type your question or click microphone to speak..."
-                onkeypress="if(event.key === 'Enter') sendMessage()"
-            />
-            <div class="voice-controls">
-                <button id="recordBtn" onclick="toggleRecording()">🎤</button>
-                <button onclick="sendMessage()" id="sendBtn">Send 📤</button>
-            </div>
+    <div class="chat-container" id="chatContainer">
+        <div class="message bot">
+            👋 Namaste! I'm your crop farming assistant.  
+            Ask me about crop choice, nutrient schedule, disease prevention, or good farming practices.
         </div>
     </div>
 
-    <script>
-        let isRecording = false;
-        let recognition = null;
+    <div class="input-area">
+        <input 
+            type="text" 
+            id="userInput" 
+            placeholder="Type your question or click the microphone to speak..."
+            onkeypress="if(event.key === 'Enter') sendMessage()"
+        />
+        <button id="recordBtn" onclick="toggleRecording()">🎤</button>
+        <button id="sendBtn" onclick="sendMessage()">Send 📤</button>
+    </div>
+</div>
 
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'en-US';
+<script>
+    let isRecording = false;
+    let recognition = null;
 
-            recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('userInput').value = transcript;
-            };
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
 
-            recognition.onerror = function(event) {
-                console.error('Speech recognition error:', event.error);
-                const chatContainer = document.getElementById('chatContainer');
-                const errorMsg = document.createElement('div');
-                errorMsg.className = 'message bot';
-                errorMsg.style.background = '#ffebee';
-                errorMsg.style.color = '#c62828';
-                
-                const errors = {
-                    'not-allowed': 'Microphone permission denied. Please allow microphone access and refresh the page.',
-                    'no-speech': 'No speech detected. Please try again.',
-                    'audio-capture': 'No microphone found. Please connect a microphone.',
-                    'network': 'Network error occurred.',
-                };
-                
-                errorMsg.textContent = '⚠️ ' + (errors[event.error] || 'Speech recognition error: ' + event.error);
-                chatContainer.appendChild(errorMsg);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-                
-                document.getElementById('recordBtn').classList.remove('record-btn');
-                document.getElementById('recordBtn').textContent = '🎤';
-                isRecording = false;
-            };
+        recognition.onresult = function(event) {
+            const transcript = event.results[0][0].transcript;
+            document.getElementById('userInput').value = transcript;
+        };
 
-            recognition.onend = function() {
-                document.getElementById('recordBtn').classList.remove('record-btn');
-                document.getElementById('recordBtn').textContent = '🎤';
-                isRecording = false;
-                recognition.stop();
-            };
-        }
-
-        function toggleRecording() {
-            if (!recognition) {
-                alert('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
-                return;
-            }
-
-            if (!isRecording) {
-                try {
-                    if (recognition.state === 'running') {
-                        recognition.stop();
-                        return;
-                    }
-                    
-                    recognition.lang = document.getElementById('languageSelect').value === 'auto' ? 'en-US' : getLanguageCode(document.getElementById('languageSelect').value);
-                    recognition.start();
-                    document.getElementById('recordBtn').classList.add('record-btn');
-                    document.getElementById('recordBtn').textContent = '🛑';
-                    isRecording = true;
-                } catch (error) {
-                    console.error('Error starting speech recognition:', error);
-                    isRecording = false;
-                    document.getElementById('recordBtn').classList.remove('record-btn');
-                    document.getElementById('recordBtn').textContent = '🎤';
-                }
-            } else {
-                if (recognition.state === 'running') {
-                    recognition.stop();
-                }
-            }
-        }
-
-        function getLanguageCode(lang) {
-            const langMap = {
-                'en': 'en-US',
-                'hi': 'hi-IN',
-                'ta': 'ta-IN',
-                'te': 'te-IN',
-                'mr': 'mr-IN',
-                'gu': 'gu-IN',
-                'bn': 'bn-IN',
-                'kn': 'kn-IN',
-                'ml': 'ml-IN',
-                'pa': 'pa-IN',
-                'ur': 'ur-IN'
-            };
-            return langMap[lang] || 'en-US';
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('userInput');
-            const message = input.value.trim();
-            
-            if (!message) return;
-
-            const language = document.getElementById('languageSelect').value;
+        recognition.onerror = function(event) {
+            console.error('Speech recognition error:', event.error);
             const chatContainer = document.getElementById('chatContainer');
-            const sendBtn = document.getElementById('sendBtn');
-
-            const userMessageDiv = document.createElement('div');
-            userMessageDiv.className = 'message user';
-            userMessageDiv.textContent = message;
-            chatContainer.appendChild(userMessageDiv);
+            const errorMsg = document.createElement('div');
+            errorMsg.className = 'message bot';
+            errorMsg.style.background = '#7f1d1d';
+            errorMsg.textContent = '⚠️ ' + event.error;
+            chatContainer.appendChild(errorMsg);
             chatContainer.scrollTop = chatContainer.scrollHeight;
 
-            input.value = '';
-            sendBtn.disabled = true;
-            sendBtn.innerHTML = '<span class="loading"></span>';
+            document.getElementById('recordBtn').classList.remove('record-btn');
+            document.getElementById('recordBtn').textContent = '🎤';
+            isRecording = false;
+        };
 
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        text: message,
-                        language: language
-                    })
-                });
+        recognition.onend = function() {
+            document.getElementById('recordBtn').classList.remove('record-btn');
+            document.getElementById('recordBtn').textContent = '🎤';
+            isRecording = false;
+        };
+    }
 
-                const data = await response.json();
+    function getLanguageCode(lang) {
+        const langMap = {
+            'en': 'en-US', 'hi': 'hi-IN', 'ta': 'ta-IN', 'te': 'te-IN',
+            'mr': 'mr-IN', 'gu': 'gu-IN', 'bn': 'bn-IN', 'kn': 'kn-IN',
+            'ml': 'ml-IN', 'pa': 'pa-IN', 'ur': 'ur-IN'
+        };
+        return langMap[lang] || 'en-US';
+    }
 
-                const botMessageDiv = document.createElement('div');
-                botMessageDiv.className = 'message bot';
-                botMessageDiv.textContent = data.reply || 'Sorry, I could not understand your question.';
-                chatContainer.appendChild(botMessageDiv);
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-
-                if (document.getElementById('ttsCheckbox').checked && data.reply) {
-                    playTTS(data.reply, language);
-                }
-
-            } catch (error) {
-                console.error('Error:', error);
-                const errorDiv = document.createElement('div');
-                errorDiv.className = 'message bot';
-                errorDiv.textContent = 'Sorry, an error occurred. Please try again.';
-                chatContainer.appendChild(errorDiv);
-            } finally {
-                sendBtn.disabled = false;
-                sendBtn.textContent = 'Send 📤';
-            }
+    function toggleRecording() {
+        if (!recognition) {
+            alert('Speech recognition is not supported in your browser.');
+            return;
         }
+        const btn = document.getElementById('recordBtn');
 
-        async function playTTS(text, lang) {
-            try {
-                const response = await fetch('/api/text-to-speech', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        text: text,
-                        language: lang === 'auto' ? 'en' : lang
-                    })
-                });
-
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const audioUrl = URL.createObjectURL(blob);
-                    const audio = new Audio(audioUrl);
-                    audio.play();
-                }
-            } catch (error) {
-                console.error('TTS error:', error);
-            }
+        if (!isRecording) {
+            recognition.lang = getLanguageCode(
+                document.getElementById('languageSelect').value === 'auto'
+                    ? 'en'
+                    : document.getElementById('languageSelect').value
+            );
+            recognition.start();
+            btn.classList.add('record-btn');
+            btn.textContent = '🛑';
+            isRecording = true;
+        } else {
+            recognition.stop();
         }
+    }
 
-        function clearChat() {
-            const chatContainer = document.getElementById('chatContainer');
-            chatContainer.innerHTML = `
-                <div class="message bot">
-                    👋 Welcome! I'm your crop farming assistant. Ask me anything about crops, diseases, fertilizers, or farming practices!
-                </div>
-            `;
-        }
+    async function sendMessage() {
+        const input = document.getElementById('userInput');
+        const message = input.value.trim();
+        if (!message) return;
 
-        document.getElementById('languageSelect').addEventListener('change', function() {
-            if (recognition) {
-                recognition.lang = this.value === 'auto' ? 'en-US' : getLanguageCode(this.value);
+        const language = document.getElementById('languageSelect').value;
+        const chatContainer = document.getElementById('chatContainer');
+        const sendBtn = document.getElementById('sendBtn');
+
+        const userMsg = document.createElement('div');
+        userMsg.className = 'message user';
+        userMsg.textContent = message;
+        chatContainer.appendChild(userMsg);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+
+        input.value = '';
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '<span class="loading"></span>';
+
+        try {
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: message, language })
+            });
+            const data = await res.json();
+
+            const botMsg = document.createElement('div');
+            botMsg.className = 'message bot';
+            botMsg.textContent = data.reply || 'Sorry, I could not understand your question.';
+            chatContainer.appendChild(botMsg);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            if (document.getElementById('ttsCheckbox').checked && data.reply) {
+                playTTS(data.reply, language);
             }
-        });
-    </script>
+        } catch (err) {
+            console.error(err);
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'message bot';
+            errorDiv.textContent = 'Sorry, an error occurred. Please try again.';
+            chatContainer.appendChild(errorDiv);
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Send 📤';
+        }
+    }
+
+    async function playTTS(text, lang) {
+        try {
+            const res = await fetch('/api/text-to-speech', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    text,
+                    language: lang === 'auto' ? 'en' : lang
+                })
+            });
+            if (res.ok) {
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                new Audio(url).play();
+            }
+        } catch (err) {
+            console.error('TTS error:', err);
+        }
+    }
+
+    function clearChat() {
+        const chatContainer = document.getElementById('chatContainer');
+        chatContainer.innerHTML = `
+            <div class="message bot">
+                👋 Namaste! I'm your crop farming assistant.
+                Ask me about crop choice, nutrient schedule, pest control, or disease prevention.
+            </div>
+        `;
+    }
+
+    document.getElementById('languageSelect').addEventListener('change', function() {
+        if (recognition) {
+            recognition.lang = getLanguageCode(
+                this.value === 'auto' ? 'en' : this.value
+            );
+        }
+    });
+</script>
 </body>
 </html>
-

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact - CropAdvisor</title>
+
+    <style>
+        :root {
+            --primary: #16a34a;
+            --bg: #eef2ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Poppins", system-ui, sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at top left, #dcfce7 0, transparent 55%),
+                        radial-gradient(circle at bottom right, #fee2e2 0, transparent 55%),
+                        var(--bg);
+            min-height: 100vh;
+        }
+
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            backdrop-filter: blur(16px);
+            background: rgba(248, 250, 252, 0.92);
+            border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+        }
+
+        .nav-inner {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 14px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: var(--primary);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .logo span { font-size: 1.4rem; }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            font-size: 0.95rem;
+            color: #334155;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .nav-links a.active {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .wrapper {
+            max-width: 720px;
+            margin: 48px auto;
+            padding: 0 24px 40px;
+        }
+
+        .card {
+            background: rgba(248, 250, 252, 0.96);
+            border-radius: 22px;
+            padding: 26px 26px 30px;
+            box-shadow: 0 22px 55px rgba(15, 23, 42, 0.2);
+            border: 1px solid rgba(148, 163, 184, 0.35);
+        }
+
+        h2 {
+            margin-bottom: 6px;
+            font-size: 1.4rem;
+        }
+
+        .subtitle {
+            font-size: 0.94rem;
+            color: #4b5563;
+            margin-bottom: 18px;
+        }
+
+        .row {
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            color: #111827;
+        }
+
+        .row span.label {
+            display: inline-block;
+            width: 70px;
+            color: #6b7280;
+        }
+
+        .note {
+            font-size: 0.84rem;
+            color: #6b7280;
+            margin-top: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="nav-inner">
+        <div class="logo">
+            <span>🌾</span> CropAdvisor
+        </div>
+        <div class="nav-links">
+            <a href="{{ url_for('index') }}">Home</a>
+            <a href="{{ url_for('about') }}">About Us</a>
+            <a href="{{ url_for('contact') }}" class="active">Contact</a>
+            <a href="{{ url_for('login') }}">Login / Signup</a>
+        </div>
+    </div>
+</nav>
+
+<main class="wrapper">
+    <div class="card">
+        <h2>Contact Us</h2>
+        <p class="subtitle">
+            Have questions about the project or want to extend it further?
+            You can reach the CropAdvisor team at:
+        </p>
+
+        <div class="row">
+            <span class="label"><b>Email</b></span>
+            <span>cropadvisor.support@gmail.com</span>
+        </div>
+        <div class="row">
+            <span class="label"><b>Phone</b></span>
+            <span>+91 98765 43210</span>
+        </div>
+
+        
+    </div>
+</main>
+
+</body>
+</html>

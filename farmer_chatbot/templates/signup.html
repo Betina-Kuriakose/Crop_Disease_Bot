@@ -9,7 +9,7 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: "Poppins", system-ui, sans-serif;
     }
 
     body {
@@ -17,90 +17,109 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #7fb800, #4a7c0c);
-      color: #1b2810;
+      background:
+        radial-gradient(circle at top left, #22c55e 0, transparent 55%),
+        radial-gradient(circle at bottom right, #0ea5e9 0, transparent 55%),
+        #020617;
+      padding: 16px;
     }
 
     .card {
-      background: #fff;
-      width: min(420px, 92%);
-      border-radius: 18px;
-      padding: 2.5rem;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.25);
+      background: #f9fafb;
+      width: min(440px, 100%);
+      border-radius: 22px;
+      padding: 2.3rem 2.5rem;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+      border: 1px solid rgba(148, 163, 184, 0.6);
     }
 
     h1 {
       font-size: 1.8rem;
-      margin-bottom: 0.75rem;
-      color: #4a7c0c;
+      margin-bottom: 0.6rem;
+      color: #022c22;
     }
 
     p {
-      margin-bottom: 1.5rem;
-      color: #4e5d42;
+      margin-bottom: 1.4rem;
+      color: #4b5563;
+      font-size: 0.95rem;
     }
 
     label {
       display: block;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0.35rem;
       font-weight: 600;
-      color: #2f4f1f;
+      color: #111827;
+      font-size: 0.9rem;
     }
 
     input[type="text"],
     input[type="password"] {
       width: 100%;
-      padding: 0.85rem 1rem;
+      padding: 0.8rem 1rem;
       margin-bottom: 1rem;
-      border-radius: 10px;
-      border: 1px solid #cddac4;
-      background: #f8fbf4;
-      font-size: 1rem;
+      border-radius: 999px;
+      border: 1px solid #cbd5f5;
+      background: #eef2ff;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.3);
     }
 
     button {
       width: 100%;
       padding: 0.9rem 1rem;
       border: none;
-      border-radius: 10px;
-      background: #7fb800;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #0ea5e9, #6366f1);
       color: white;
-      font-weight: 700;
-      text-transform: uppercase;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.3s ease, transform 0.2s ease;
-      font-size: 1rem;
+      font-size: 0.98rem;
+      box-shadow: 0 15px 35px rgba(79, 70, 229, 0.5);
     }
 
     button:hover {
-      background: #a8d300;
-      transform: translateY(-1px);
+      opacity: 0.96;
     }
 
     .error {
-      background: #ffe1e1;
+      background: #fee2e2;
       color: #b91c1c;
       padding: 0.75rem 1rem;
-      border-radius: 10px;
+      border-radius: 14px;
       margin-bottom: 1rem;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
+      border: 1px solid #fecaca;
     }
 
     .cta {
-      margin-top: 1.5rem;
+      margin-top: 1.3rem;
       text-align: center;
+      font-size: 0.9rem;
+      color: #4b5563;
     }
 
     .cta a {
-      color: #4a7c0c;
+      color: #4f46e5;
       font-weight: 600;
+      text-decoration: none;
+    }
+
+    .cta a:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
   <div class="card" role="form" aria-label="Sign up form">
-    <h1>Create Account 🌾</h1>
-    <p>Sign up to access the CropAdvisor chatbot and get farming advice.</p>
+    <h1>Create account 🌾</h1>
+    <p>Sign up to use the CropAdvisor chatbot and receive crop advisory suggestions.</p>
 
     {% if error %}
       <div class="error" role="alert">{{ error }}</div>
@@ -147,4 +166,3 @@
   </div>
 </body>
 </html>
-
