@@ -1,10 +1,10 @@
-# 🌾 Crop Disease Bot - Farmer Chatbot Suite
+#  Crop Disease Bot - Farmer Chatbot Suite
 
 A comprehensive Flask-based crop advisory assistant with multilingual NLP, voice input/output, and MongoDB-based user authentication. This application helps farmers get instant advice on crop diseases, fertilizers, and agricultural practices in multiple languages.
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Python 3.8 or higher
@@ -199,7 +199,7 @@ Crop_Disease_Bot/
 
 ---
 
-## 📚 Additional Documentation
+##  Additional Documentation
 
 - **Detailed Flask Documentation:** See `farmer_chatbot/README-FLASK.md`
 - **Setup Guide:** See `farmer_chatbot/SETUP.md`
@@ -207,7 +207,7 @@ Crop_Disease_Bot/
 
 ---
 
-## 🚢 Production Deployment
+##  Production Deployment
 
 ### Using Gunicorn
 
@@ -247,4 +247,4 @@ When adding new features:
 
 ---
 
-**Happy Farming! 🌾**
+**Happy Farming! **
