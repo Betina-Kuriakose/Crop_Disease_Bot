@@ -1,8 +1,36 @@
-fastapi==0.115.0
-uvicorn[standard]==0.30.6
-python-multipart==0.0.12
-Pillow==10.4.0
-numpy==2.1.1
-tensorflow==2.15.0
+# Flask Web Framework
+flask==3.0.0
+flask-cors==4.0.0
 
+# Data Processing
+pandas==2.1.4
+numpy==1.24.3
 
+# Machine Learning & NLP
+scikit-learn==1.3.2
+nltk==3.8.1
+transformers==4.35.0
+torch==2.1.0
+sentencepiece==0.1.99
+
+# Translation Support
+googletrans==4.0.0rc1
+langdetect==1.0.9
+
+# Voice Features (Optional - app works without these)
+# Note: PyAudio is required for microphone input but can be tricky on Windows
+# If you get PyAudio errors, the app will still work but voice input won't be available
+# To install PyAudio on Windows: pip install pipwin && pipwin install pyaudio
+# Or download wheel from: https://www.lfd.uci.edu/~gohlke/pythonlibs/#pyaudio
+SpeechRecognition==3.10.0
+pyttsx3==2.90
+gTTS==2.5.1
+
+# Environment Variables
+python-dotenv==1.0.0
+
+# Database
+pymongo==4.6.1
+
+# Production Server (optional, for deployment)
+# gunicorn==21.2.0
