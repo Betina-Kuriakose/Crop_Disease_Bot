@@ -1,0 +1,122 @@
+questions,answers,question_clean,tokens,tokens_no_stop,tokens_lemmatized,question_processed
+"asking about the combine harvester for paddy","A combine harvester for paddy is a versatile machine that performs three main operations in one go: reaping, threshing, and winnowing. It cuts the paddy crop, separates the grain from the stalk, and cleans the grain. Modern combine harvesters are efficient and can cover large areas quickly. They come in different sizes and can be self-propelled or tractor-mounted. The use of combine harvesters significantly reduces labor costs and post-harvest losses while increasing overall efficiency.","asking about the combine harvester for paddy","['asking', 'about', 'the', 'combine', 'harvester', 'for', 'paddy']","['asking', 'combine', 'harvester', 'paddy']","['asking', 'combine', 'harvester', 'paddy']","asking combine harvester paddy"
+"asking about the source of information of pure goat breed varieties","For information about pure goat breed varieties, I recommend contacting the Farm Manager at the Goat Research Farm in Burnihat. They maintain detailed records of various pure goat breeds and can provide accurate information about breed characteristics, availability, and best practices for rearing specific breeds.","asking about the source of information of pure goat breed varieties","['asking', 'about', 'the', 'source', 'of', 'information', 'of', 'pure', 'goat', 'breed', 'varieties']","['asking', 'source', 'information', 'pure', 'goat', 'breed', 'varieties']","['asking', 'source', 'information', 'pure', 'goat', 'breed', 'variety']","asking source information pure goat breed variety"
+"asking about carp culture","Carp culture is a common practice in freshwater aquaculture. Here are the key points about carp culture:
+
+1. Species commonly cultured: Common carp, Grass carp, Silver carp, and Catla
+2. Pond preparation: Lime application, organic manuring, and water filling
+3. Stocking density: 4000-5000 fingerlings per hectare
+4. Feeding: Rice bran, mustard oil cake, and supplementary feed
+5. Water quality management: Regular monitoring of pH, dissolved oxygen, and temperature
+6. Harvesting: Partial harvesting can be done after 8-10 months
+7. Expected yield: 4-5 tons per hectare per year
+
+Regular monitoring and proper feeding are essential for successful carp culture.","asking about carp culture","['asking', 'about', 'carp', 'culture']","['asking', 'carp', 'culture']","['asking', 'carp', 'culture']","asking carp culture"
+"asking about remedy for anthracnose of bhola","For anthracnose in bhola, you can prepare and apply Bordeaux mixture as follows:
+
+Bordeaux Mixture Preparation:
+1. Ingredients:
+   - Copper sulfate (bluestone): 1 kg
+   - Fresh hydrated lime: 1 kg
+   - Water: 100 liters
+
+2. Preparation Steps:
+   a. Dissolve 1 kg copper sulfate in 50 liters of water in a plastic container
+   b. In a separate container, mix 1 kg of fresh hydrated lime with 50 liters of water
+   c. Pour the copper sulfate solution into the lime solution while stirring
+   d. Test the mixture using a clean iron nail (if it turns black, add more lime)
+
+Application:
+1. Spray the mixture on affected plants in the early morning or late afternoon
+2. Ensure thorough coverage of all plant parts
+3. Repeat application every 10-15 days or after heavy rain
+4. Use protective gear while spraying
+5. Do not apply during flowering
+6. Avoid spraying in extreme temperatures
+
+Note: Always test on a small area first to check for phytotoxicity.","asking about remedy for anthracnose of bhola","['asking', 'about', 'remedy', 'for', 'anthracnose', 'of', 'bhola']","['asking', 'remedy', 'anthracnose', 'bhola']","['asking', 'remedy', 'anthracnose', 'bhola']","asking remedy anthracnose bhola"
+"pest in bhindi (okra)","For pest control in bhindi (okra), you can use Pectus at the rate of 3 ml per 10 liters of water. Spray the solution evenly on the plants, ensuring good coverage of both upper and lower leaf surfaces. Apply early in the morning or late in the evening for best results. Repeat the application at 10-15 day intervals if needed, but always follow the manufacturer's instructions on the product label.","pest in bhindi (okra)","['pest', 'in', 'bhindi', 'okra']","['pest', 'bhindi', 'okra']","['pest', 'bhindi', 'okra']","pest bhindi okra"
+"asking about fertilizer dose of coconut & arecanut","Recommended fertilizer doses for coconut and arecanut:
+
+Coconut (per palm per year):
+- Nitrogen (N): 500 g
+- Phosphorus (P₂O₅): 300 g
+- Potassium (K₂O): 1200 g
+- Organic manure: 50 kg
+
+Arecanut (per palm per year):
+- Nitrogen (N): 100 g
+- Phosphorus (P₂O₅): 40 g
+- Potassium (K₂O): 140 g
+- Organic manure: 10-15 kg
+
+Application method:
+1. Split the total quantity into 2-3 equal doses
+2. Apply in circular basins around the palm (1.5-2m radius)
+3. Mix fertilizers with soil and irrigate immediately
+4. For best results, apply during the pre-monsoon and post-monsoon seasons
+
+Note: These are general recommendations. For site-specific recommendations, consult your local agricultural extension officer.","asking about fertilizer dose of coconut & arecanut","['asking', 'about', 'fertilizer', 'dose', 'of', 'coconut', '&', 'arecanut']","['asking', 'fertilizer', 'dose', 'coconut', 'arecanut']","['asking', 'fertilizer', 'dose', 'coconut', 'arecanut']","asking fertilizer dose coconut arecanut"
+"asking about control measure of downy mildew disease in cucumber","For controlling downy mildew in cucumber, apply Mancozeb at the rate of 2 grams per liter of water. Spray the solution thoroughly on both sides of the leaves. For best results:
+
+1. Spray during cooler parts of the day (early morning or late afternoon)
+2. Ensure complete coverage of all plant parts
+3. Repeat application at 7-10 day intervals or as needed
+4. Alternate with other fungicides to prevent resistance
+5. Remove and destroy severely infected plant parts before spraying
+6. Maintain proper plant spacing for good air circulation
+7. Avoid overhead irrigation to reduce leaf wetness duration
+
+Always follow the manufacturer's instructions on the product label for specific application rates and safety precautions.","asking about control measure of downy mildew disease in cucumber","['asking', 'about', 'control', 'measure', 'of', 'downy', 'mildew', 'disease', 'in', 'cucumber']","['asking', 'control', 'measure', 'downy', 'mildew', 'disease', 'cucumber']","['asking', 'control', 'measure', 'downy', 'mildew', 'disease', 'cucumber']","asking control measure downy mildew disease cucumber"
+"pest problem in chilli","For pest control in chilli, you can use Malathion 50 EC at the rate of 2 ml per liter of water. Here's how to apply:
+
+1. Mix 2 ml of Malathion 50 EC in 1 liter of water
+2. Spray the solution evenly on both sides of the leaves
+3. Apply early in the morning or late in the evening
+4. Repeat application after 10-15 days if needed
+5. Maintain a pre-harvest interval of at least 7 days
+
+Additional tips:
+- Wear protective clothing while spraying
+- Don't spray during flowering to protect pollinators
+- Alternate with other insecticides to prevent pest resistance
+- Always follow the manufacturer's instructions on the product label
+
+For severe infestations, consult your local agricultural extension officer for integrated pest management strategies.","pest problem in chilli","['pest', 'problem', 'in', 'chilli']","['pest', 'problem', 'chilli']","['pest', 'problem', 'chilli']","pest problem chilli"
+"asking about the information of Kisan Credit Card (KCC)","Kisan Credit Card (KCC) is a credit scheme for farmers in India that provides timely access to credit for agricultural needs. Here are the key features:
+
+1. Purpose:
+   - Crop production
+   - Post-harvest expenses
+   - Working capital for farm assets
+   - Consumption needs of farmers
+   - Investment credit for agriculture
+
+2. Eligibility:
+   - Individual farmers
+   - Tenant farmers
+   - Sharecroppers
+   - Self-help groups (SHGs)
+   - Joint liability groups (JLGs)
+
+3. Benefits:
+   - Interest subvention of 2% per annum
+   - Additional 3% subvention for timely repayment
+   - Credit limit based on landholding and crop requirements
+   - Repayment period up to 12 months
+   - Insurance coverage under PMFBY
+
+4. Documents Required:
+   - Land records
+   - Identity proof (Aadhaar, Voter ID, etc.)
+   - Address proof
+   - Passport size photographs
+   - Bank account details
+
+5. How to Apply:
+   - Visit your nearest bank branch
+   - Fill out the KCC application form
+   - Submit required documents
+   - Get your KCC after verification
+
+For more details, contact your nearest bank branch or visit the official website of NABARD.","asking about the information of Kisan Credit Card (KCC)","['asking', 'about', 'the', 'information', 'of', 'Kisan', 'Credit', 'Card', 'KCC']","['asking', 'information', 'Kisan', 'Credit', 'Card', 'KCC']","['asking', 'information', 'kisan', 'credit', 'card', 'kcc']","asking information kisan credit card kcc"
