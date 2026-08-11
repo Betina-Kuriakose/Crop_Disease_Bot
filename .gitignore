@@ -1,0 +1,61 @@
+# Environment & Secrets (NEVER push keys/secrets to GitHub)
+.env
+.env.*
+.evn
+*.pem
+*.key
+
+# Python virtual environment
+.venv/
+venv/
+env/
+ENV/
+bin/
+lib/
+include/
+
+# Byte-compiled / Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing & Linting
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Jupyter Notebook & Checkpoints
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# IDE & OS Specific
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Audio & Temporary files
+*.tmp
+*.log
+*.bak
+*.mp3
+*.wav
+
+# Models & Machine Learning Cache
+*.pkl
+*.cache
