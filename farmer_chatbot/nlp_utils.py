@@ -182,3 +182,83 @@ def get_nlp_processor() -> Optional[NLPProcessor]:
         return None
 
 
+# Generative AI (Google Gemini) Integration for User-Friendly RAG Advisory
+import os
+GENAI_NEW_SDK = False
+GENAI_OLD_SDK = False
+
+try:
+    from google import genai
+    GENAI_NEW_SDK = True
+except ImportError:
+    try:
+        import google.generativeai as genai  # type: ignore
+        GENAI_OLD_SDK = True
+    except ImportError:
+        genai = None
+
+
+def format_with_generative_ai(query: str, raw_answer: str, api_key: Optional[str] = None) -> str:
+    """
+    Refines raw dataset Q&A answers into warm, structured, user-friendly farmer advisory text
+    using Google Gemini Generative AI.
+    """
+    if not api_key:
+        api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key or not raw_answer or (not GENAI_NEW_SDK and not GENAI_OLD_SDK):
+        return raw_answer
+
+    prompt = f"""
+You are an expert agricultural advisor assistant for farmers.
+Farmer Question: "{query}"
+Expert Knowledge Base Match: "{raw_answer}"
+
+Task:
+Reformat the expert recommendation into a short, clear, highly concise, and direct advisory response (under 120 words).
+
+Rules:
+1. Be SHORT, precise, and straight to the point. Avoid lengthy intros, long pleasantries, or wordy fluff.
+2. DO NOT use any emojis (like 🧪, 🗓️, ⚠️) and DO NOT use any asterisks for bolding (do NOT use **text**).
+3. Use plain bullet points (using simple hyphen '-') and clean plain text headers.
+4. Preserve 100% of all chemical names, dosages, timings, varieties, and numbers from the expert recommendation.
+5. IMPORTANT: ALWAYS respond in the EXACT SAME language as the Farmer Question (e.g. if the farmer asked in Hindi or Hinglish, answer in Hindi; if in English, answer in English).
+"""
+
+    candidate_models = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-pro"]
+
+    if GENAI_NEW_SDK:
+        try:
+            client = genai.Client(api_key=api_key)
+            for m in candidate_models:
+                try:
+                    response = client.models.generate_content(
+                        model=m,
+                        contents=prompt,
+                    )
+                    if response and response.text:
+                        txt = response.text.replace("**", "").strip()
+                        return txt
+                except Exception:
+                    continue
+        except Exception as exc:
+            print(f"GenAI SDK formatting fallback: {exc}")
+
+    if GENAI_OLD_SDK:
+        try:
+            genai.configure(api_key=api_key)
+            for m in candidate_models:
+                try:
+                    model = genai.GenerativeModel(m)
+                    response = model.generate_content(prompt)
+                    if response and response.text:
+                        txt = response.text.replace("**", "").strip()
+                        return txt
+                except Exception:
+                    continue
+        except Exception as exc:
+            print(f"Generative AI formatting fallback: {exc}")
+
+    return raw_answer
+
+
+

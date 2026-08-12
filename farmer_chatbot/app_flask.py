@@ -18,19 +18,26 @@ from pymongo.errors import PyMongoError
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 import pandas as pd
+import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import tempfile
 import base64
 import io
 
-# Translation support
+# Translation support (Prefer deep-translator, fallback to googletrans)
+DEEP_TRANSLATE_AVAILABLE = False
+try:
+    from deep_translator import GoogleTranslator
+    DEEP_TRANSLATE_AVAILABLE = True
+except Exception:
+    DEEP_TRANSLATE_AVAILABLE = False
+
 try:
     from googletrans import Translator
     translator = Translator()
     TRANSLATOR_AVAILABLE = True
 except Exception as e:
-    print(f"Translation not available: {e}")
     translator = None
     TRANSLATOR_AVAILABLE = False
 
@@ -57,58 +64,45 @@ USE_NLP_PIPELINE = os.getenv("FARM_BOT_DISABLE_NLP", "").lower() not in {"1", "t
 
 if USE_NLP_PIPELINE:
     try:
-        from nlp_utils import get_nlp_processor
-
+        from nlp_utils import get_nlp_processor, format_with_generative_ai
         nlp_processor = get_nlp_processor()
         NLP_AVAILABLE = nlp_processor is not None
     except Exception as exc:
         nlp_processor = None
         NLP_AVAILABLE = False
+        format_with_generative_ai = lambda q, a, **kw: a
         print(f"NLP enhancements not available: {exc}")
 else:
     nlp_processor = None
     NLP_AVAILABLE = False
+    format_with_generative_ai = lambda q, a, **kw: a
     print("NLP enhancements disabled via FARM_BOT_DISABLE_NLP environment variable")
 
 INTENT_KEYWORDS = {
     "fertilizer": {
-        "fertilizer",
-        "fertiliser",
-        "fertilizers",
-        "fertilisers",
-        "manure",
-        "nutrient",
-        "nutrients",
-        "dose",
-        "doses",
-        "application",
-        "apply",
-        "npk",
-        "nitrogen",
-        "phosphorus",
-        "potash",
-        "potassium",
-        "urea",
-        "dap",
-        "mop",
+        "fertilizer", "fertiliser", "fertilizers", "fertilisers", "manure",
+        "nutrient", "nutrients", "dose", "doses", "application", "apply",
+        "npk", "nitrogen", "phosphorus", "potash", "potassium", "urea", "dap", "mop"
     },
     "disease_prevention": {
-        "disease",
-        "diseases",
-        "prevent",
-        "prevention",
-        "protect",
-        "protection",
-        "control",
-        "biosecurity",
-        "healthy",
-        "immunity",
-        "sanitation",
-        "hygiene",
-        "clean",
-        "vaccination",
-        "vaccine",
+        "disease", "diseases", "prevent", "prevention", "protect", "protection",
+        "control", "biosecurity", "healthy", "immunity", "sanitation", "hygiene",
+        "clean", "vaccination", "vaccine", "wilt", "blight", "rot", "canker", "virus", "dying"
     },
+    "seed_treatment": {
+        "treat", "treated", "treatment", "chemical", "bavistin", "captaf",
+        "fungicide", "dressing", "disinfection", "germination", "seed"
+    },
+    "season_sowing": {
+        "season", "sowing", "sow", "sowed", "planting", "plant", "planting season", "timing",
+        "month", "months", "period", "harvest", "time"
+    },
+    "variety": {
+        "variety", "varieties", "hybrid", "breed", "cultivar"
+    },
+    "soil": {
+        "soil", "loam", "sandy", "land", "ph", "drainage"
+    }
 }
 
 INTENT_FALLBACKS = {
@@ -215,32 +209,32 @@ def initialize_mongodb():
         try:
             # Try to create index - this will create the collection if it doesn't exist
             users_collection.create_index("username", unique=True)
-            print(f"✅ Created/verified index on '{MONGO_USER_COLLECTION}.username'")
+            print(f"[OK] Created/verified index on '{MONGO_USER_COLLECTION}.username'")
         except Exception as idx_err:
-            print(f"⚠️  Index creation note: {idx_err}")
+            print(f"[WARN] Index creation note: {idx_err}")
         
         # Verify collection exists by checking database
         collection_names = db.list_collection_names()
         if MONGO_USER_COLLECTION in collection_names:
-            print(f"✅ Collection '{MONGO_USER_COLLECTION}' exists")
+            print(f"[OK] Collection '{MONGO_USER_COLLECTION}' exists")
         else:
-            print(f"ℹ️  Collection '{MONGO_USER_COLLECTION}' will be created on first write")
+            print(f"[INFO] Collection '{MONGO_USER_COLLECTION}' will be created on first write")
         
-        print(f"✅ MongoDB database connection established successfully")
+        print(f"[OK] MongoDB database connection established successfully")
         print(f"   Database: {MONGO_DB_NAME}")
         print(f"   Collection: {MONGO_USER_COLLECTION}")
         print(f"   Ready to store user credentials!")
         
         return True
     except PyMongoError as mongo_exc:
-        print(f"❌ [MongoDB] Connection unavailable: {mongo_exc}")
+        print(f"[ERROR] [MongoDB] Connection unavailable: {mongo_exc}")
         print(f"   URI used: {mask_uri(MONGO_URI)}")
         mongo_client = None
         db = None
         users_collection = None
         return False
     except Exception as e:
-        print(f"❌ [MongoDB] Unexpected error: {e}")
+        print(f"[ERROR] [MongoDB] Unexpected error: {e}")
         mongo_client = None
         db = None
         users_collection = None
@@ -262,22 +256,73 @@ else:
 
 df.fillna("", inplace=True)
 
+CROP_ALIASES = {
+    'mustard': ['mustard'],
+    'coconut': ['coconut'],
+    'rice': ['rice', 'paddy', 'ahu', 'sali', 'boro'],
+    'brinjal': ['brinjal', 'eggplant'],
+    'tomato': ['tomato'],
+    'maize': ['maize', 'corn'],
+    'bittergourd': ['bittergourd', 'bitter gourd', 'biter gourd'],
+    'wheat': ['wheat'],
+    'potato': ['potato'],
+    'chilli': ['chilli', 'chili'],
+    'cotton': ['cotton'],
+    'banana': ['banana'],
+    'mango': ['mango'],
+    'papaya': ['papaya'],
+    'tea': ['tea'],
+    'sugarcane': ['sugarcane'],
+    'blackgram': ['blackgram', 'black gram'],
+    'greengram': ['greengram', 'green gram'],
+    'bhendi': ['bhendi', 'okra'],
+    'cabbage': ['cabbage'],
+    'cauliflower': ['cauliflower'],
+    'aonla': ['aonla'],
+    'chayote': ['chayote'],
+    'pumpkin': ['pumpkin', 'pumkin'],
+    'fish': ['fish', 'fishes', 'carp', 'carps', 'chitala', 'pond'],
+    'cow': ['cow', 'cows', 'cattle', 'milk', 'dairy'],
+    'goat': ['goat', 'goats']
+}
+
+def strip_prompt_prefix(text: str) -> str:
+    if not text:
+        return ""
+    text = str(text).lower()
+    text = re.sub(r'^\s*asking\s+(about|that|how|for)?\s*', '', text)
+    text = text.replace("pumkin", "pumpkin").replace("friut", "fruit").replace("sawing", "sowing")
+    return re.sub(r'\s+', ' ', text).strip()
+
+def extract_crop_entities(text: str) -> set:
+    if not text:
+        return set()
+    cleaned = re.sub(r'[^a-z0-9\s]', ' ', text.lower()).replace("pumkin", "pumpkin")
+    found = set()
+    for main_crop, aliases in CROP_ALIASES.items():
+        for alias in aliases:
+            if re.search(r'\b' + re.escape(alias) + r'\b', cleaned):
+                found.add(main_crop)
+                break
+    return found
+
 # Create corpus from questions
 if "question_processed" in df.columns and df["question_processed"].notna().any():
-    df['processed_questions'] = df['question_processed'].fillna("").astype(str)
+    df['processed_questions'] = df['question_processed'].apply(strip_prompt_prefix)
 elif NLP_AVAILABLE and nlp_processor:
-    df['processed_questions'] = df['questions'].apply(nlp_processor.clean_text)
+    df['processed_questions'] = df['questions'].apply(lambda q: strip_prompt_prefix(nlp_processor.clean_text(q)))
 else:
-    df['processed_questions'] = df['questions'].str.lower().str.strip()
+    df['processed_questions'] = df['questions'].apply(strip_prompt_prefix)
 
 df['token_set'] = df['processed_questions'].apply(lambda txt: set((txt or "").split()))
+df['crop_entities'] = df['processed_questions'].apply(extract_crop_entities)
 corpus = df['processed_questions'].tolist()
 vectorizer = TfidfVectorizer(
     stop_words="english",
-    max_features=5000,
+    max_features=10000,
     ngram_range=(1, 2),
     min_df=2,
-    max_df=0.95
+    max_df=0.90
 )
 tfidf_matrix = vectorizer.fit_transform(corpus)
 
@@ -353,7 +398,11 @@ def translate_to_english(text: str, src_lang: str) -> str:
         return text
     if src_lang.startswith("en"):
         return text
-    # Prefer online translator, fallback to local MBART helper
+    if DEEP_TRANSLATE_AVAILABLE:
+        try:
+            return GoogleTranslator(source="auto", target="en").translate(text)
+        except Exception:
+            pass
     if TRANSLATOR_AVAILABLE:
         try:
             res = translator.translate(text, src="auto", dest="en")
@@ -372,6 +421,11 @@ def translate_from_english(text: str, target_lang: str) -> str:
     if not text or not target_lang or target_lang.startswith("en"):
         return text
     base_lang = target_lang.split("-")[0]
+    if DEEP_TRANSLATE_AVAILABLE:
+        try:
+            return GoogleTranslator(source="auto", target=base_lang).translate(text)
+        except Exception:
+            pass
     if TRANSLATOR_AVAILABLE:
         try:
             res = translator.translate(text, src="en", dest=base_lang)
@@ -392,17 +446,21 @@ def prepare_query(text: str) -> str:
     return text.lower().strip()
 
 
-def detect_intent(text: str) -> str | None:
-    """Detect high-level intent (fertilizer, etc.) from the query."""
+def detect_intents(text: str) -> set:
+    """Detect high-level intents from the query."""
     if not text:
-        return None
-    normalized = prepare_query(text)
-    tokens = set(normalized.split())
-    for intent, keywords in INTENT_KEYWORDS.items():
-        if tokens & keywords:
-            return intent
-    return None
+        return set()
+    cleaned = set(strip_prompt_prefix(text).split())
+    detected = set()
+    for intent, kw_set in INTENT_KEYWORDS.items():
+        if cleaned & kw_set:
+            detected.add(intent)
+    return detected
 
+def detect_intent(text: str) -> str | None:
+    """Detect single primary intent for backwards compatibility."""
+    intents = detect_intents(text)
+    return next(iter(intents), None) if intents else None
 
 def answer_has_medication(text: str) -> bool:
     """Return True if the answer instructs medication usage."""
@@ -411,61 +469,69 @@ def answer_has_medication(text: str) -> bool:
     lowered = text.lower()
     return any(token in lowered for token in MEDICATION_TERMS)
 
-
-def rerank_results(results, intent: str | None):
-    """Use intent keywords to boost relevant answers."""
-    if not results:
-        return None
-    if not intent or intent not in INTENT_KEYWORDS:
-        best = results[0]
-        best.pop("token_set", None)
-        best["intent_match_score"] = 0
-        return best
-
-    keywords = INTENT_KEYWORDS[intent]
-
-    def boost(item):
-        token_set = item.get("token_set") or set()
-        return len(token_set & keywords)
-
-    ranked = sorted(results, key=lambda item: (boost(item), item["score"]), reverse=True)
-    best = ranked[0]
-    best["intent_match_score"] = boost(best)
-    best.pop("token_set", None)
-    return best
-
-def find_best_answer(query: str, top_n=5, intent: str | None = None):
-    """Find the best answer(s) for a query using TF-IDF and cosine similarity."""
-    if not query.strip():
+def find_best_answer(query: str, top_n=100, intent: str | None = None):
+    """Find the best answer(s) for a query using crop entity matching and TF-IDF similarity."""
+    if not query or not query.strip():
         return None
     
-    # Clean query
-    query = prepare_query(query)
+    raw_query = query
+    query_clean = strip_prompt_prefix(query)
+    if NLP_AVAILABLE and nlp_processor:
+        query_clean = nlp_processor.clean_text(query_clean)
 
-    if not query:
-        return None
+    if not query_clean:
+        query_clean = raw_query.lower().strip()
     
-    # Vectorize query
-    q_vec = vectorizer.transform([query])
-    
-    # Calculate similarity
+    query_crops = extract_crop_entities(raw_query)
+    query_intents = detect_intents(raw_query)
+    q_vec = vectorizer.transform([query_clean])
     sims = cosine_similarity(q_vec, tfidf_matrix)[0]
     
-    # Get top N results
-    results = []
     top_indices = sims.argsort()[-top_n:][::-1]
     
+    results = []
     for idx in top_indices:
-        if sims[idx] > 0.1:  # Threshold for relevance
-            best_row = df.iloc[int(idx)]
-            results.append({
-                "question": best_row["questions"],
-                "answer": best_row["answers"],
-                "score": float(sims[idx]),
-                "token_set": best_row["token_set"],
-            })
+        sim = float(sims[idx])
+        if sim < 0.10:
+            continue
+        best_row = df.iloc[int(idx)]
+        answer_str = str(best_row["answers"]).strip().lower()
+        question_str = str(best_row["questions"]).strip().lower()
+        
+        # Filter out trivial dummy answers (e.g. question == answer)
+        if len(answer_str) < 5 or answer_str == question_str:
+            continue
+            
+        row_crops = best_row.get("crop_entities") or set()
+        row_intents = detect_intents(best_row["questions"] + " " + best_row["answers"])
+        
+        crop_factor = 1.0
+        if query_crops:
+            if query_crops & row_crops:
+                crop_factor = 1.6
+            else:
+                crop_factor = 0.25  # Heavy penalty for cross-crop mismatch
+        
+        intent_bonus = 0.0
+        if query_intents:
+            common_intents = query_intents & row_intents
+            intent_bonus = len(common_intents) * 0.25
+        
+        final_score = (sim * crop_factor) + intent_bonus
+        results.append({
+            "question": best_row["questions"],
+            "answer": best_row["answers"],
+            "score": sim,
+            "final_score": final_score,
+            "intent_match_score": len(query_intents & row_intents) if query_intents else 0
+        })
     
-    return rerank_results(results, intent)
+    if not results:
+        return None
+        
+    results.sort(key=lambda item: item["final_score"], reverse=True)
+    best = results[0]
+    return best
 '''
 @app.route("/")
 def index():
@@ -555,11 +621,11 @@ def signup():
                     # Auto-login after signup
                     session["user_id"] = str(result.inserted_id)
                     session["username"] = username
-                    print(f"✅ New user registered: {username}")
+                    print(f"[OK] New user registered: {username}")
                     return redirect(url_for("chat_page"))
                 except Exception as e:
                     error = f"Registration failed: {str(e)}"
-                    print(f"❌ Signup error: {e}")
+                    print(f"[ERROR] Signup error: {e}")
 
     return render_template("signup.html", error=error, username=username)
 
@@ -595,36 +661,45 @@ def chat():
     query_en = translate_to_english(user_text, lang)
     
     # Determine query intent and find best answer
-    intent = detect_intent(query_en)
-    best = find_best_answer(query_en, intent=intent)
+    intents = detect_intents(query_en)
+    primary_intent = detect_intent(query_en)
+    intent = primary_intent
+    best = find_best_answer(query_en)
     
     if not best:
         reply_en = INTENT_FALLBACKS.get(
-            intent,
+            primary_intent,
             "Sorry, I could not understand your question about crops. Could you please rephrase it or be more specific about the crop or issue?",
         )
     elif (
-        intent
+        primary_intent
         and best.get("intent_match_score", 0) == 0
         and best.get("score", 0) < 0.3
     ):
         reply_en = INTENT_FALLBACKS.get(
-            intent,
+            primary_intent,
             "Sorry, I could not find a specific answer. Please provide more details.",
         )
     else:
-        reply_en = best["answer"]
-        # Normalize answer into English so downstream translation works reliably
-        if DETECT_AVAILABLE and reply_en:
-            answer_lang = detect_language(reply_en)
+        raw_answer = best["answer"]
+        # Normalize answer into English if needed
+        if DETECT_AVAILABLE and raw_answer:
+            answer_lang = detect_language(raw_answer)
             if answer_lang and not answer_lang.startswith("en"):
-                reply_en = translate_to_english(reply_en, answer_lang)
+                raw_answer = translate_to_english(raw_answer, answer_lang)
 
-        if intent == "disease_prevention" and answer_has_medication(reply_en):
+        # Enhance raw database answer using Generative AI in the user's question language
+        formatted_ai = format_with_generative_ai(user_text, raw_answer)
+
+        if intent == "disease_prevention" and answer_has_medication(formatted_ai):
             reply_en = INTENT_FALLBACKS["disease_prevention"]
-    
-    # Translate reply back to user's language
-    reply_out = translate_from_english(reply_en, lang)
+            reply_out = translate_from_english(reply_en, lang)
+        elif formatted_ai != raw_answer:
+            reply_en = formatted_ai
+            reply_out = formatted_ai
+        else:
+            reply_en = raw_answer
+            reply_out = translate_from_english(reply_en, lang)
     
     return jsonify({
         "reply": reply_out,
@@ -752,16 +827,18 @@ def health():
 
 if __name__ == "__main__":
     print("Starting Crop Chatbot Flask Application...")
+    has_gemini = bool(os.getenv("GEMINI_API_KEY"))
     print(f"Dataset loaded: {len(df)} Q&A pairs")
     print(f"Voice features: {'Available' if VOICE_AVAILABLE else 'Not available'}")
-    print(f"Translation: {'Available' if TRANSLATOR_AVAILABLE else 'Not available'}")
+    print(f"Translation: {'Available' if (DEEP_TRANSLATE_AVAILABLE or TRANSLATOR_AVAILABLE) else 'Not available'}")
+    print(f"Generative AI RAG: {'[ENABLED]' if has_gemini else '[DISABLED - Set GEMINI_API_KEY in .env]'}")
     print("\n" + "="*70)
-    print("🌐 ACCESS URLS:")
+    print("ACCESS URLS:")
     print("="*70)
-    print("📍 Local access (⭐ BEST for microphone):")
-    print("   → http://localhost:5000")
-    print("   → http://127.0.0.1:5000")
-    print("\n📍 Network access (for other devices):")
+    print("Local access (BEST for microphone):")
+    print("   -> http://localhost:5000")
+    print("   -> http://127.0.0.1:5000")
+    print("\nNetwork access (for other devices):")
     
     import socket
     try:
@@ -769,17 +846,17 @@ if __name__ == "__main__":
         s.connect(("8.8.8.8", 80))
         local_ip = s.getsockname()[0]
         s.close()
-        print(f"   → http://{local_ip}:5000")
-        print(f"   ⚠️  Microphone may require localhost or permission setup")
+        print(f"   -> http://{local_ip}:5000")
+        print(f"   [WARN] Microphone may require localhost or permission setup")
     except:
-        print("   → http://YOUR_IP_ADDRESS:5000")
+        print("   -> http://YOUR_IP_ADDRESS:5000")
     
     print("\n" + "="*70)
-    print("🎤 MICROPHONE PERMISSION SETUP:")
+    print("MICROPHONE PERMISSION SETUP:")
     print("="*70)
     print("If microphone is BLOCKED in browser:")
-    print("1. Click lock icon (🔒) in address bar")
-    print("2. Find 'Microphone' → Change to 'Allow'")
+    print("1. Click lock icon in address bar")
+    print("2. Find 'Microphone' -> Change to 'Allow'")
     print("3. Refresh the page")
     print("4. Or use localhost URL for better support")
     print("="*70 + "\n")
