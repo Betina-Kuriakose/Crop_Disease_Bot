@@ -7,6 +7,63 @@ import pickle
 import os
 
 class CropChatbot:
+    CROP_ALIASES = {
+        'mustard': ['mustard'],
+        'coconut': ['coconut'],
+        'rice': ['rice', 'paddy', 'ahu', 'sali', 'boro'],
+        'brinjal': ['brinjal', 'eggplant'],
+        'tomato': ['tomato'],
+        'maize': ['maize', 'corn'],
+        'bittergourd': ['bittergourd', 'bitter gourd', 'biter gourd'],
+        'wheat': ['wheat'],
+        'potato': ['potato'],
+        'chilli': ['chilli', 'chili'],
+        'cotton': ['cotton'],
+        'banana': ['banana'],
+        'mango': ['mango'],
+        'papaya': ['papaya'],
+        'tea': ['tea'],
+        'sugarcane': ['sugarcane'],
+        'blackgram': ['blackgram', 'black gram'],
+        'greengram': ['greengram', 'green gram'],
+        'bhendi': ['bhendi', 'okra'],
+        'cabbage': ['cabbage'],
+        'cauliflower': ['cauliflower'],
+        'aonla': ['aonla'],
+        'chayote': ['chayote'],
+        'pumpkin': ['pumpkin', 'pumkin'],
+        'fish': ['fish', 'fishes', 'carp', 'carps', 'chitala', 'pond'],
+        'cow': ['cow', 'cows', 'cattle', 'milk', 'dairy'],
+        'goat': ['goat', 'goats']
+    }
+
+    INTENT_KEYWORDS = {
+        "fertilizer": {
+            "fertilizer", "fertiliser", "fertilizers", "fertilisers", "manure",
+            "nutrient", "nutrients", "dose", "doses", "application", "apply",
+            "npk", "nitrogen", "phosphorus", "potash", "potassium", "urea", "dap", "mop"
+        },
+        "disease_prevention": {
+            "disease", "diseases", "prevent", "prevention", "protect", "protection",
+            "control", "biosecurity", "healthy", "immunity", "sanitation", "hygiene",
+            "clean", "vaccination", "vaccine", "wilt", "blight", "rot", "canker", "virus", "dying"
+        },
+        "seed_treatment": {
+            "treat", "treated", "treatment", "chemical", "bavistin", "captaf",
+            "fungicide", "dressing", "disinfection", "germination", "seed"
+        },
+        "season_sowing": {
+            "season", "sowing", "sow", "sowed", "planting", "plant", "planting season", "timing",
+            "month", "months", "period", "harvest", "time"
+        },
+        "variety": {
+            "variety", "varieties", "hybrid", "breed", "cultivar"
+        },
+        "soil": {
+            "soil", "loam", "sandy", "land", "ph", "drainage"
+        }
+    }
+
     def __init__(self, dataset_path):
         """
         Initialize the Crop Chatbot with the dataset.
@@ -27,6 +84,7 @@ class CropChatbot:
         print("Loading dataset...")
         try:
             self.df = pd.read_csv(self.dataset_path)
+            self.df.fillna("", inplace=True)
             print(f"Dataset loaded successfully! Found {len(self.df)} Q&A pairs.")
         except Exception as e:
             print(f"Error loading dataset: {e}")
@@ -35,40 +93,64 @@ class CropChatbot:
     def preprocess_data(self):
         """Preprocess the questions for better matching."""
         print("Preprocessing data...")
-        # Clean and normalize questions
-        self.df['cleaned_questions'] = self.df['questions'].apply(self.clean_text)
         # Remove any rows with empty questions or answers
         self.df = self.df.dropna(subset=['questions', 'answers'])
         self.df = self.df[self.df['questions'].str.strip() != '']
         self.df = self.df[self.df['answers'].str.strip() != '']
+
+        # Determine processed questions
+        if "question_processed" in self.df.columns and self.df["question_processed"].notna().any():
+            self.df['cleaned_questions'] = self.df['question_processed'].apply(self.clean_text)
+        else:
+            self.df['cleaned_questions'] = self.df['questions'].apply(self.clean_text)
+
+        self.df['crop_entities'] = self.df['questions'].apply(self.extract_crops)
         print(f"After preprocessing: {len(self.df)} Q&A pairs remaining.")
     
     def clean_text(self, text):
         """Clean and normalize text for better matching."""
-        if pd.isna(text):
+        if pd.isna(text) or not text:
             return ""
         text = str(text).lower()
-        # Strip dataset prompt prefixes
+        # Strip dataset prompt prefixes and fix typos
         text = re.sub(r'^\s*asking\s+(about|that|how|for)?\s*', '', text)
+        text = text.replace("pumkin", "pumpkin").replace("friut", "fruit").replace("sawing", "sowing")
         text = re.sub(r'[^a-z0-9\s]', ' ', text)
         text = re.sub(r'\s+', ' ', text).strip()
         return text
 
     def extract_crops(self, text):
-        common_crops = {
-            'mustard', 'coconut', 'rice', 'paddy', 'brinjal', 'eggplant', 'tomato',
-            'maize', 'corn', 'bittergourd', 'bitter gourd', 'wheat', 'potato', 'chilli',
-            'chili', 'cotton', 'banana', 'mango', 'papaya', 'tea', 'sugarcane', 'blackgram',
-            'greengram', 'bhendi', 'okra', 'cabbage', 'cauliflower', 'aonla', 'chayote',
-            'fish', 'cow', 'cattle', 'pig', 'goat', 'sheep', 'poultry', 'chicken'
-        }
-        cleaned = re.sub(r'[^a-z0-9\s]', ' ', str(text).lower())
-        return {crop for crop in common_crops if crop in cleaned}
+        """Extract matched crop entity canonical names from text."""
+        if not text:
+            return set()
+        cleaned = re.sub(r'[^a-z0-9\s]', ' ', str(text).lower()).replace("pumkin", "pumpkin")
+        found = set()
+        for main_crop, aliases in self.CROP_ALIASES.items():
+            for alias in aliases:
+                if re.search(r'\b' + re.escape(alias) + r'\b', cleaned):
+                    found.add(main_crop)
+                    break
+        return found
+
+    def detect_intents(self, text):
+        """Detect high-level intent categories from text."""
+        if not text:
+            return set()
+        cleaned_words = set(self.clean_text(text).split())
+        detected = set()
+        for intent, kw_set in self.INTENT_KEYWORDS.items():
+            if cleaned_words & kw_set:
+                detected.add(intent)
+        return detected
+
+    def detect_primary_intent(self, text):
+        """Detect single primary intent for classification."""
+        intents = self.detect_intents(text)
+        return next(iter(intents), None) if intents else None
     
     def train_model(self):
         """Train the TF-IDF vectorizer on the questions."""
         print("Training the NLP model...")
-        self.df['crop_entities'] = self.df['cleaned_questions'].apply(self.extract_crops)
         self.vectorizer = TfidfVectorizer(
             max_features=10000,
             ngram_range=(1, 2),  # Use unigrams and bigrams
@@ -82,67 +164,104 @@ class CropChatbot:
             self.df['cleaned_questions'].values
         )
         print("Model training completed!")
-    
-    def find_answer(self, user_question, top_n=3):
-        """
-        Find the best answer(s) for a user question.
-        """
-        if not user_question or user_question.strip() == "":
-            return [{"answer": "Please ask a question about crops or farming.", "similarity": 0.0}]
-        
-        cleaned_question = self.clean_text(user_question)
-        user_crops = self.extract_crops(user_question)
-        user_vector = self.vectorizer.transform([cleaned_question])
-        
-        similarities = cosine_similarity(user_vector, self.question_vectors).flatten()
-        top_indices = similarities.argsort()[-50:][::-1]
-        
+
+    def find_best_answer(self, query, top_n=100):
+        """Find the single best answer dict for a query using crop matching, intent matching, and TF-IDF similarity."""
+        if not query or not query.strip():
+            return None
+
+        raw_query = query
+        query_clean = self.clean_text(query)
+        if not query_clean:
+            query_clean = raw_query.lower().strip()
+
+        query_crops = self.extract_crops(raw_query)
+        query_intents = self.detect_intents(raw_query)
+
+        q_vec = self.vectorizer.transform([query_clean])
+        sims = cosine_similarity(q_vec, self.question_vectors)[0]
+
+        top_indices = sims.argsort()[-top_n:][::-1]
+
         results = []
         for idx in top_indices:
-            sim = float(similarities[idx])
-            if sim < 0.15:
+            sim = float(sims[idx])
+            if sim < 0.10:
                 continue
-            row_crops = self.df.iloc[idx].get('crop_entities') or set()
-            
+
+            row = self.df.iloc[int(idx)]
+            answer_str = str(row["answers"]).strip().lower()
+            question_str = str(row["questions"]).strip().lower()
+
+            # Filter out trivial dummy answers
+            if len(answer_str) < 5 or answer_str == question_str:
+                continue
+
+            row_crops = row.get("crop_entities") or set()
+            row_intents = self.detect_intents(str(row["questions"]) + " " + str(row["answers"]))
+
             crop_factor = 1.0
-            if user_crops:
-                if user_crops & row_crops:
+            if query_crops:
+                if query_crops & row_crops:
                     crop_factor = 1.6
                 else:
-                    crop_factor = 0.2
-            
-            final_score = sim * crop_factor
+                    crop_factor = 0.25  # Cross-crop penalty
+
+            intent_bonus = 0.0
+            if query_intents:
+                common_intents = query_intents & row_intents
+                intent_bonus = len(common_intents) * 0.25
+
+            final_score = (sim * crop_factor) + intent_bonus
             results.append({
-                "answer": self.df.iloc[idx]['answers'],
-                "similarity": sim,
+                "question": row["questions"],
+                "answer": row["answers"],
+                "score": sim,
                 "final_score": final_score,
-                "original_question": self.df.iloc[idx]['questions']
+                "intent_match_score": len(query_intents & row_intents) if query_intents else 0
             })
-        
-        results.sort(key=lambda x: x["final_score"], reverse=True)
-        results = results[:top_n]
-        
+
         if not results:
-            return [{
-                "answer": "I couldn't find a specific answer to your question. Could you try rephrasing it? For example, you could ask about: crop diseases, fertilizer doses, pest control, cultivation practices, or crop varieties.",
-                "similarity": 0.0
-            }]
-        
-        return results
+            return None
+
+        results.sort(key=lambda item: item["final_score"], reverse=True)
+        return results[0]
     
-    def get_best_answer(self, user_question):
-        """
-        Get the single best answer for a user question.
-        
-        Args:
-            user_question: The user's question
-        
-        Returns:
-            String containing the best answer
-        """
+    def find_answer(self, user_question, top_n=3):
+        """Find top N answers for CLI usage."""
+        if not user_question or user_question.strip() == "":
+            return [{"answer": "Please ask a question about crops or farming.", "similarity": 0.0}]
+
+        best = self.find_best_answer(user_question, top_n=50)
+        if best:
+            return [{
+                "answer": best["answer"],
+                "similarity": best["score"],
+                "final_score": best["final_score"],
+                "original_question": best["question"]
+            }]
+
+        return [{
+            "answer": "I couldn't find a specific answer to your question. Could you try rephrasing it? For example, you could ask about: crop diseases, fertilizer doses, pest control, cultivation practices, or crop varieties.",
+            "similarity": 0.0
+        }]
+    
+    def format_answer(self, user_question, raw_answer):
+        """Refine raw dataset answer into warm, structured farmer advisory using Gemini AI."""
+        try:
+            from nlp_utils import format_with_generative_ai
+            return format_with_generative_ai(user_question, raw_answer)
+        except Exception:
+            return raw_answer
+
+    def get_best_answer(self, user_question, smooth=False):
+        """Get single best answer string, optionally formatted with Generative AI."""
         results = self.find_answer(user_question, top_n=1)
         if results:
-            return results[0]['answer']
+            raw = results[0]['answer']
+            if smooth:
+                return self.format_answer(user_question, raw)
+            return raw
         return "I'm sorry, I couldn't find a relevant answer. Please try rephrasing your question."
     
     def save_model(self, model_path='crop_chatbot_model.pkl'):

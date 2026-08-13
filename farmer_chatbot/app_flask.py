@@ -24,6 +24,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 import tempfile
 import base64
 import io
+from crop_chatbot import CropChatbot
 
 # Translation support (Prefer deep-translator, fallback to googletrans)
 DEEP_TRANSLATE_AVAILABLE = False
@@ -60,22 +61,26 @@ except Exception as e:
     VOICE_AVAILABLE = False
     print(f"Voice features initialization failed: {e}")
 
+try:
+    from nlp_utils import format_with_generative_ai
+except Exception as exc:
+    format_with_generative_ai = lambda q, a, **kw: a
+    print(f"Generative AI module warning: {exc}")
+
 USE_NLP_PIPELINE = os.getenv("FARM_BOT_DISABLE_NLP", "").lower() not in {"1", "true", "yes"}
 
 if USE_NLP_PIPELINE:
     try:
-        from nlp_utils import get_nlp_processor, format_with_generative_ai
+        from nlp_utils import get_nlp_processor
         nlp_processor = get_nlp_processor()
         NLP_AVAILABLE = nlp_processor is not None
     except Exception as exc:
         nlp_processor = None
         NLP_AVAILABLE = False
-        format_with_generative_ai = lambda q, a, **kw: a
         print(f"NLP enhancements not available: {exc}")
 else:
     nlp_processor = None
     NLP_AVAILABLE = False
-    format_with_generative_ai = lambda q, a, **kw: a
     print("NLP enhancements disabled via FARM_BOT_DISABLE_NLP environment variable")
 
 INTENT_KEYWORDS = {
@@ -243,88 +248,12 @@ def initialize_mongodb():
 # Initialize MongoDB connection
 initialize_mongodb()
 
-# Load dataset (prefer pre-cleaned CSV if available)
+# Initialize CropChatbot (loads dataset, cleans text, extracts entities, trains TF-IDF)
 RAW_DATA_PATH = os.path.join(BASE_DIR, "archive", "questionsv4.csv")
 CLEAN_DATA_PATH = os.path.join(BASE_DIR, "archive", "questions_cleaned.csv")
+ACTIVE_DATASET = CLEAN_DATA_PATH if os.path.exists(CLEAN_DATA_PATH) else RAW_DATA_PATH
 
-if os.path.exists(CLEAN_DATA_PATH):
-    df = pd.read_csv(CLEAN_DATA_PATH)
-    ACTIVE_DATASET = CLEAN_DATA_PATH
-else:
-    df = pd.read_csv(RAW_DATA_PATH)
-    ACTIVE_DATASET = RAW_DATA_PATH
-
-df.fillna("", inplace=True)
-
-CROP_ALIASES = {
-    'mustard': ['mustard'],
-    'coconut': ['coconut'],
-    'rice': ['rice', 'paddy', 'ahu', 'sali', 'boro'],
-    'brinjal': ['brinjal', 'eggplant'],
-    'tomato': ['tomato'],
-    'maize': ['maize', 'corn'],
-    'bittergourd': ['bittergourd', 'bitter gourd', 'biter gourd'],
-    'wheat': ['wheat'],
-    'potato': ['potato'],
-    'chilli': ['chilli', 'chili'],
-    'cotton': ['cotton'],
-    'banana': ['banana'],
-    'mango': ['mango'],
-    'papaya': ['papaya'],
-    'tea': ['tea'],
-    'sugarcane': ['sugarcane'],
-    'blackgram': ['blackgram', 'black gram'],
-    'greengram': ['greengram', 'green gram'],
-    'bhendi': ['bhendi', 'okra'],
-    'cabbage': ['cabbage'],
-    'cauliflower': ['cauliflower'],
-    'aonla': ['aonla'],
-    'chayote': ['chayote'],
-    'pumpkin': ['pumpkin', 'pumkin'],
-    'fish': ['fish', 'fishes', 'carp', 'carps', 'chitala', 'pond'],
-    'cow': ['cow', 'cows', 'cattle', 'milk', 'dairy'],
-    'goat': ['goat', 'goats']
-}
-
-def strip_prompt_prefix(text: str) -> str:
-    if not text:
-        return ""
-    text = str(text).lower()
-    text = re.sub(r'^\s*asking\s+(about|that|how|for)?\s*', '', text)
-    text = text.replace("pumkin", "pumpkin").replace("friut", "fruit").replace("sawing", "sowing")
-    return re.sub(r'\s+', ' ', text).strip()
-
-def extract_crop_entities(text: str) -> set:
-    if not text:
-        return set()
-    cleaned = re.sub(r'[^a-z0-9\s]', ' ', text.lower()).replace("pumkin", "pumpkin")
-    found = set()
-    for main_crop, aliases in CROP_ALIASES.items():
-        for alias in aliases:
-            if re.search(r'\b' + re.escape(alias) + r'\b', cleaned):
-                found.add(main_crop)
-                break
-    return found
-
-# Create corpus from questions
-if "question_processed" in df.columns and df["question_processed"].notna().any():
-    df['processed_questions'] = df['question_processed'].apply(strip_prompt_prefix)
-elif NLP_AVAILABLE and nlp_processor:
-    df['processed_questions'] = df['questions'].apply(lambda q: strip_prompt_prefix(nlp_processor.clean_text(q)))
-else:
-    df['processed_questions'] = df['questions'].apply(strip_prompt_prefix)
-
-df['token_set'] = df['processed_questions'].apply(lambda txt: set((txt or "").split()))
-df['crop_entities'] = df['processed_questions'].apply(extract_crop_entities)
-corpus = df['processed_questions'].tolist()
-vectorizer = TfidfVectorizer(
-    stop_words="english",
-    max_features=10000,
-    ngram_range=(1, 2),
-    min_df=2,
-    max_df=0.90
-)
-tfidf_matrix = vectorizer.fit_transform(corpus)
+chatbot = CropChatbot(ACTIVE_DATASET)
 
 # Initialize voice assistant if available
 voice_assistant = None
@@ -447,20 +376,12 @@ def prepare_query(text: str) -> str:
 
 
 def detect_intents(text: str) -> set:
-    """Detect high-level intents from the query."""
-    if not text:
-        return set()
-    cleaned = set(strip_prompt_prefix(text).split())
-    detected = set()
-    for intent, kw_set in INTENT_KEYWORDS.items():
-        if cleaned & kw_set:
-            detected.add(intent)
-    return detected
+    """Detect high-level intents from query via chatbot instance."""
+    return chatbot.detect_intents(text)
 
 def detect_intent(text: str) -> str | None:
-    """Detect single primary intent for backwards compatibility."""
-    intents = detect_intents(text)
-    return next(iter(intents), None) if intents else None
+    """Detect single primary intent via chatbot instance."""
+    return chatbot.detect_primary_intent(text)
 
 def answer_has_medication(text: str) -> bool:
     """Return True if the answer instructs medication usage."""
@@ -470,68 +391,8 @@ def answer_has_medication(text: str) -> bool:
     return any(token in lowered for token in MEDICATION_TERMS)
 
 def find_best_answer(query: str, top_n=100, intent: str | None = None):
-    """Find the best answer(s) for a query using crop entity matching and TF-IDF similarity."""
-    if not query or not query.strip():
-        return None
-    
-    raw_query = query
-    query_clean = strip_prompt_prefix(query)
-    if NLP_AVAILABLE and nlp_processor:
-        query_clean = nlp_processor.clean_text(query_clean)
-
-    if not query_clean:
-        query_clean = raw_query.lower().strip()
-    
-    query_crops = extract_crop_entities(raw_query)
-    query_intents = detect_intents(raw_query)
-    q_vec = vectorizer.transform([query_clean])
-    sims = cosine_similarity(q_vec, tfidf_matrix)[0]
-    
-    top_indices = sims.argsort()[-top_n:][::-1]
-    
-    results = []
-    for idx in top_indices:
-        sim = float(sims[idx])
-        if sim < 0.10:
-            continue
-        best_row = df.iloc[int(idx)]
-        answer_str = str(best_row["answers"]).strip().lower()
-        question_str = str(best_row["questions"]).strip().lower()
-        
-        # Filter out trivial dummy answers (e.g. question == answer)
-        if len(answer_str) < 5 or answer_str == question_str:
-            continue
-            
-        row_crops = best_row.get("crop_entities") or set()
-        row_intents = detect_intents(best_row["questions"] + " " + best_row["answers"])
-        
-        crop_factor = 1.0
-        if query_crops:
-            if query_crops & row_crops:
-                crop_factor = 1.6
-            else:
-                crop_factor = 0.25  # Heavy penalty for cross-crop mismatch
-        
-        intent_bonus = 0.0
-        if query_intents:
-            common_intents = query_intents & row_intents
-            intent_bonus = len(common_intents) * 0.25
-        
-        final_score = (sim * crop_factor) + intent_bonus
-        results.append({
-            "question": best_row["questions"],
-            "answer": best_row["answers"],
-            "score": sim,
-            "final_score": final_score,
-            "intent_match_score": len(query_intents & row_intents) if query_intents else 0
-        })
-    
-    if not results:
-        return None
-        
-    results.sort(key=lambda item: item["final_score"], reverse=True)
-    best = results[0]
-    return best
+    """Find the best answer for a query using CropChatbot matching logic."""
+    return chatbot.find_best_answer(query, top_n=top_n)
 '''
 @app.route("/")
 def index():
@@ -820,7 +681,7 @@ def health():
     """Health check endpoint."""
     return jsonify({
         "status": "healthy",
-        "dataset_size": len(df),
+        "dataset_size": len(chatbot.df),
         "voice_available": VOICE_AVAILABLE,
         "translation_available": TRANSLATOR_AVAILABLE
     })
@@ -828,7 +689,7 @@ def health():
 if __name__ == "__main__":
     print("Starting Crop Chatbot Flask Application...")
     has_gemini = bool(os.getenv("GEMINI_API_KEY"))
-    print(f"Dataset loaded: {len(df)} Q&A pairs")
+    print(f"Dataset loaded: {len(chatbot.df)} Q&A pairs")
     print(f"Voice features: {'Available' if VOICE_AVAILABLE else 'Not available'}")
     print(f"Translation: {'Available' if (DEEP_TRANSLATE_AVAILABLE or TRANSLATOR_AVAILABLE) else 'Not available'}")
     print(f"Generative AI RAG: {'[ENABLED]' if has_gemini else '[DISABLED - Set GEMINI_API_KEY in .env]'}")
